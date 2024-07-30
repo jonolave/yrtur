@@ -65,7 +65,7 @@
   async function fetchWeather(lat, lon) {
     try {
       const response = await fetch(
-        `http://localhost:5173/api/subseasonal?lat=${lat}&lon=${lon}`
+        `./api/subseasonal?lat=${lat}&lon=${lon}`
       );
       if (!response.ok) {
         console.error(
