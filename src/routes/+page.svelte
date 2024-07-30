@@ -150,22 +150,22 @@
     <p class="mt-4">Example Location Forecast Complete:</p>
     <a
       class="text-purple-600"
-      href="http://localhost:5173/api/location-forecast-complete?lat=60.1&lon=9.58"
-      >http://localhost:5173/api/location-forecast-complete?lat=60.1&lon=9.58</a
+      href="./api/location-forecast-complete?lat=60.1&lon=9.58"
+      >./api/location-forecast-complete?lat=60.1&lon=9.58</a
     >
 
     <p class="mt-4">Example Subseasonal:</p>
     <a
       class="text-purple-600"
-      href="http://localhost:5173/api/subseasonal?lat=60.1&lon=9.58"
-      >http://localhost:5173/api/subseasonal?lat=60.1&lon=9.58</a
+      href="./api/subseasonal?lat=60.1&lon=9.58"
+      >./api/subseasonal?lat=60.1&lon=9.58</a
     >
 
     <p class="mt-4">Example Nowcast:</p>
     <a
       class="text-purple-600"
-      href="http://localhost:5173/api/nowcast?lat=60.1&lon=9.58"
-      >http://localhost:5173/api/nowcast?lat=60.1&lon=9.58</a
+      href="./api/nowcast?lat=60.1&lon=9.58"
+      >./api/nowcast?lat=60.1&lon=9.58</a
     >
 
     <p class="mt-4">
