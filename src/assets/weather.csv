@@ -1,0 +1,42 @@
+dayId,dayName,nightId,nightName,midnightID,midnightName,en,nb,nn
+01d,clearsky_day,01n,clearsky_night,01m,clearsky_polartwilight,clear sky,klarvær,klårvêr
+02d,fair_day,02n,fair_night,02m,fair_polartwilight,fair,lettskyet,lettskya
+03d,partlycloudy_day,03n,partlycloudy_night,03m,partlycloudy_polartwilight,partly cloudy,delvis skyet,delvis skya
+4,cloudy,,,,,cloudy,skyet,skya
+05d,rainshowers_day,05n,rainshowers_night,05m,rainshowers_polartwilight,rain showers,regnbyger,regnbyer
+06d,rainshowersandthunder_day,06n,rainshowersandthunder_night,06m,rainshowersandthunder_polartwilight,rain showers and thunder,regnbyger og torden,regnbyer og torevêr
+07d,sleetshowers_day,07n,sleetshowers_night,07m,sleetshowers_polartwilight,sleet showers,sluddbyger,sluddbyer
+08d,snowshowers_day,08n,snowshowers_night,08m,snowshowers_polartwilight,snow showers,snøbyger,snøbyer
+9,rain,,,,,rain,regn,regn
+10,heavyrain,,,,,heavy rain,kraftig regn,kraftig regn
+11,heavyrainandthunder,,,,,heavy rain and thunder,kraftig regn og torden,kraftig regn og torevêr
+12,sleet,,,,,sleet,sludd,sludd
+13,snow,,,,,snow,snø,snø
+14,snowandthunder,,,,,snow and thunder,snø og torden,snø og torevêr
+15,fog,,,,,fog,tåke,skodde
+20d,sleetshowersandthunder_day,20n,sleetshowersandthunder_night,20m,sleetshowersandthunder_polartwilight,sleet showers and thunder,sluddbyger og torden,sluddbyer og torevêr
+21d,snowshowersandthunder_day,21n,snowshowersandthunder_night,21m,snowshowersandthunder_polartwilight,snow showers and thunder,snøbyger og torden,snøbyer og torevêr
+22,rainandthunder,,,,,rain and thunder,regn og torden,regn og torevêr
+23,sleetandthunder,,,,,sleet and thunder,sludd og torden,sludd og torevêr
+24d,lightrainshowersandthunder_day,24n,lightrainshowersandthunder_night,24m,lightrainshowersandthunder_polartwilight,light rain showers and thunder,lette regnbyger og torden,lette regnbyer og torevêr
+25d,heavyrainshowersandthunder_day,25n,heavyrainshowersandthunder_night,25m,heavyrainshowersandthunder_polartwilight,heavy rain showers and thunder,kraftige regnbyger og torden,kraftige regnbyer og torevêr
+26d,lightssleetshowersandthunder_day,26n,lightssleetshowersandthunder_night,26m,lightssleetshowersandthunder_polartwilight,light sleet showers and thunder,lette sluddbyger og torden,lette sluddbyer og torevêr
+27d,heavysleetshowersandthunder_day,27n,heavysleetshowersandthunder_night,27m,heavysleetshowersandthunder_polartwilight,heavy sleet showers and thunder,kraftige sluddbyger og torden,kraftige sluddbyer og torevêr
+28d,lightssnowshowersandthunder_day,28n,lightssnowshowersandthunder_night,28m,lightssnowshowersandthunder_polartwilight,light snow showers and thunder,lette snøbyger og torden,lette snøbyer og torevêr
+29d,heavysnowshowersandthunder_day,29n,heavysnowshowersandthunder_night,29m,heavysnowshowersandthunder_polartwilight,heavy snow showers and thunder,kraftige snøbyger og torden,kraftige snøbyer og torevêr
+30,lightrainandthunder,,,,,light rain and thunder,lett regn og torden,lett regn og torevêr
+31,lightsleetandthunder,,,,,light sleet and thunder,lett sludd og torden,lett sludd og torevêr
+32,heavysleetandthunder,,,,,heavy sleet and thunder,kraftig sludd og torden,kraftig sludd og torevêr
+33,lightsnowandthunder,,,,,light snow and thunder,lett snø og torden,lett snø og torevêr
+34,heavysnowandthunder,,,,,heavy snow and thunder,kraftig snø og torden,kraftig snø og torevêr
+40d,lightrainshowers_day,40n,lightrainshowers_night,40m,lightrainshowers_polartwilight,light rain showers,lette regnbyger,lette regnbyer
+41d,heavyrainshowers_day,41n,heavyrainshowers_night,41m,heavyrainshowers_polartwilight,heavy rain showers,kraftige regnbyger,kraftige regnbyer
+42d,lightsleetshowers_day,42n,lightsleetshowers_night,42m,lightsleetshowers_polartwilight,light sleet showers,lette sluddbyger,lette sluddbyer
+43d,heavysleetshowers_day,43n,heavysleetshowers_night,43m,heavysleetshowers_polartwilight,heavy sleet showers,kraftige sluddbyger,kraftige sluddbyer
+44d,lightsnowshowers_day,44n,lightsnowshowers_night,44m,lightsnowshowers_polartwilight,light snow showers,lette snøbyger,lette snøbyer
+45d,heavysnowshowers_day,45n,heavysnowshowers_night,45m,heavysnowshowers_polartwilight,heavy snow showers,kraftige snøbyger,kraftige snøbyer
+46,lightrain,,,,,light rain,lett regn,lett regn
+47,lightsleet,,,,,light sleet,lett sludd,lett sludd
+48,heavysleet,,,,,heavy sleet,kraftig sludd,kraftig sludd
+49,lightsnow,,,,,light snow,lett snø,lett snø
+50,heavysnow,,,,,heavy snow,kraftig snø,kraftig snø
