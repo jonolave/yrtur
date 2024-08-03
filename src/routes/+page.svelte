@@ -20,7 +20,7 @@
   let csvData = [];
 
   async function loadCSV() {
-    const response = await fetch("./src/assets/weather.csv");
+    const response = await fetch("weather.csv");
     const csvText = await response.text();
     parseCSV(csvText);
   }
