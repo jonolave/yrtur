@@ -12,10 +12,7 @@ const apiUrl = 'https://api.met.no/weatherapi/locationforecast/2.0/complete';
 // It it updated twice pr day. Horizontal resolution is approximately 18 km.
 // Some time period aggregations will not always be present if there are insufficient model data.
 // "next_1_hours" is only available in the short range forecast
-
-let cachedData = null;
-let expires = null;
-let lastModified = null;
+let cache = new Map();
 
 export async function GET({ url }) {
   console.log('Weather endpoint accessed'); // Add this line for debugging
@@ -28,44 +25,52 @@ export async function GET({ url }) {
   }
 
   const currentTime = new Date();
-  console.log(`Current time: ${currentTime}`);
+  const cacheKey = `${lat},${lon}`;
 
-  if (cachedData && expires && currentTime < expires) {
-    console.log('Using cached data');
-    return json(cachedData);
+  if (cache.has(cacheKey)) {
+    const { data, expires, lastModified } = cache.get(cacheKey);
+    if (currentTime < expires) {
+      console.log(`Using cached data for (${lat}, ${lon})`);
+      return json(data);
+    }
   }
 
   const headers = {
     'User-Agent': sitename,
   };
 
+  let lastModified = null;
+  if (cache.has(cacheKey)) {
+    lastModified = cache.get(cacheKey).lastModified;
+  }
+
   if (lastModified) {
     headers['If-Modified-Since'] = lastModified;
   }
 
   try {
-    console.log('Fetching data from Yr API');
+    console.log(`Fetching data for (${lat}, ${lon})`);
     const response = await fetch(`${apiUrl}?lat=${lat}&lon=${lon}`, { headers });
 
     console.log(`Response status: ${response.status}`);
     console.log(`Response headers: ${JSON.stringify(response.headers.raw())}`);
 
     if (response.status === 304) {
-      console.log('Data not modified, using cached data');
-      return json(cachedData);
+      console.log(`Data not modified, using cached data for (${lat}, ${lon})`);
+      return json(cache.get(cacheKey).data);
     } else if (response.status === 200) {
-      console.log('Data fetched successfully');
+      console.log(`Data fetched successfully for (${lat}, ${lon})`);
       const data = await response.json();
-      cachedData = data;
-      expires = new Date(response.headers.get('expires'));
-      lastModified = response.headers.get('last-modified');
+      const expires = new Date(response.headers.get('expires'));
+      const lastModified = response.headers.get('last-modified');
+      cache.set(cacheKey, { data, expires, lastModified });
       return json(data);
     } else {
-      console.log('Failed to fetch weather data', response.status);
+      console.log(`Failed to fetch weather data for (${lat}, ${lon})`, response.status);
       return json({ error: 'Failed to fetch weather data' }, { status: response.status });
     }
   } catch (error) {
-    console.log('Error fetching weather data', error);
+    console.log(`Error fetching weather data for (${lat}, ${lon})`, error);
     return json({ error: 'Failed to fetch weather data' }, { status: 500 });
   }
 }

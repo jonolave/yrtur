@@ -159,8 +159,46 @@
               <h3 class="text-xl font-bold absolute left-8 mb-2">
                 {data.location.name}
               </h3>
+
               <div class="flex space-x-4 pt-8">
-                <!-- Each day -->
+                <!-- Nowcast Card -->
+                <div class="flex-shrink-0 border p-4 w-56">
+                  <p class="pt-8 font-semibold">Neste time (Nowcast):</p>
+
+                  {#if data.nowcast.properties.timeseries.length > 0}
+                    <p>
+                      {searchBySymbolCode(
+                        data.nowcast.properties.timeseries[0].data.next_1_hours
+                          .summary.symbol_code
+                      ).title_nn}
+                    </p>
+                    <p>Id: {searchBySymbolCode(data.nowcast.properties.timeseries[0].data.next_1_hours.summary.symbol_code).id}</p>
+                    <img
+                      src={`./yr-symbols-lightmode/svg/${searchBySymbolCode(data.nowcast.properties.timeseries[0].data.next_1_hours.summary.symbol_code).id}.svg`}
+                      alt=""
+                    />
+
+                    <p>
+                      Temp: {data.nowcast.properties.timeseries[0].data
+                        .instant.details.air_temperature}°C
+                    </p>
+                    <p>
+                      Regn: {data.nowcast.properties.timeseries[0].data
+                        .next_1_hours.details.precipitation_amount} mm
+                    </p>
+                    <p>
+                      Vind: {data.nowcast.properties.timeseries[0].data
+                        .instant.details.wind_speed} m/s
+                    </p>
+                  {/if}
+                </div>
+
+                <!-- Location forecast card 
+                <div class="flex-shrink-0 border p-4 w-56">
+                  {#if data.nowcast.properties.timeseries.length > 0}{/if}
+                </div> -->
+
+                <!-- Subseasonal langtidsvarsel -->
                 {#each data.subseasonal.properties.timeseries as series (series.time)}
                   {#if series.data.next_24_hours}
                     <div class="flex-shrink-0 border p-4 w-56">
