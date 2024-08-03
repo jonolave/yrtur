@@ -5,15 +5,18 @@
 
   let weatherData = [];
   let locations = [
-    { name: "Finse", lat: 60.6, lon: 7.5 },
-    { name: "Hestenesøyra", lat: 61.84, lon: 6.0 },
     { name: "Oslo", lat: 59.92, lon: 10.75 },
+    { name: "Eikern", lat: 59.62, lon: 10.0 },
+    { name: "Filefjell", lat: 61.17, lon: 8.2 },
+    { name: "Leikanger", lat: 61.18, lon: 6.8 },
+    { name: "Hestenesøyra", lat: 61.84, lon: 6.0 },
+    { name: "Finse", lat: 60.6, lon: 7.5 },
   ];
 
   let lat = 60.1; // Default latitude
   let lon = 9.58; // Default longitude
 
-  // Variable and functions for CSV data for Yr symbols
+  // CSV for Yr symbols
   let csvData = [];
 
   async function loadCSV() {
@@ -62,11 +65,25 @@
     }
   }
 
-  async function fetchWeather(lat, lon) {
+  async function fetchWeatherFromAPI(lat, lon, apiType) {
+    // Choose correct URL for API
+    let url;
+    switch (apiType) {
+      case "nowcast":
+        url = `./api/nowcast?lat=${lat}&lon=${lon}`;
+        break;
+      case "subseasonal":
+        url = `./api/subseasonal?lat=${lat}&lon=${lon}`;
+        break;
+      case "locationforecast":
+        url = `./api/location-forecast-complete?lat=${lat}&lon=${lon}`;
+        break;
+      default:
+        return null;
+    }
+
     try {
-      const response = await fetch(
-        `./api/subseasonal?lat=${lat}&lon=${lon}`
-      );
+      const response = await fetch(url);
       if (!response.ok) {
         console.error(
           `Failed to fetch weather data for (${lat}, ${lon}):`,
@@ -83,7 +100,30 @@
   }
 
   async function fetchWeatherForAllLocations() {
-    const promises = locations.map((loc) => fetchWeather(loc.lat, loc.lon));
+    const promises = locations.map(async (loc) => {
+      const nowcast = fetchWeatherFromAPI(loc.lat, loc.lon, "nowcast");
+      const subseasonal = fetchWeatherFromAPI(loc.lat, loc.lon, "subseasonal");
+      const locationforecast = fetchWeatherFromAPI(
+        loc.lat,
+        loc.lon,
+        "locationforecast"
+      );
+
+      const [nowcastData, subseasonalData, locationforecastData] =
+        await Promise.all([nowcast, subseasonal, locationforecast]);
+
+      if (nowcastData && subseasonalData && locationforecastData) {
+        return {
+          location: loc,
+          nowcast: nowcastData,
+          subseasonal: subseasonalData,
+          locationforecast: locationforecastData,
+        };
+      } else {
+        return null; // Filter out any incomplete data
+      }
+    });
+
     const results = await Promise.all(promises);
     weatherData = results.filter((data) => data !== null); // Filter out any null responses
     console.log("Weather data for all locations:", weatherData);
@@ -107,36 +147,86 @@
   <h1 class="text-3xl font-bold my-8">YrTur</h1>
 
   <!-- Data for all locations -->
-  <div class="max-w-4xl mx-auto my-8 flex flex-col overflow-x-auto">
-    {#if weatherData && weatherData.length > 0}
-      {#each weatherData as data, index}
-      <!-- For each location -->
-        <div class="mb-8">
-          <h3 class="text-xl font-bold mb-2 absolute left-8">
-            {locations[index].name}
-          </h3>
-          <div class="flex space-x-4 pt-8">
-            {#each data.properties.timeseries as series (series.time)}
-              {#if series.data.next_24_hours}
-                <div class="flex-shrink-0 border p-4 w-56">
-                  <p class="font-semibold">{formatDate(series.time)}</p>
-                  <p>
-                    Temp: 
-                    <span class="font-semibold">{series.data.next_24_hours.details.air_temperature_min}</span>–
-                    <span class="font-semibold">{series.data.next_24_hours.details.air_temperature_max}</span>°C
-                  </p>
-
-                  <p>
-                    Nedbør: <span class="font-semibold">{series.data.next_24_hours.details.precipitation_amount}</span> mm
-                  </p>
-
-                </div>
-              {/if}
-            {/each}
-          </div>
-        </div>
-      {/each}
-    {/if}
+  <div class="relative w-full overflow-hidden my-8">
+    <div class="w-[150%] overflow-x-auto whitespace-nowrap">
+      <div class="inline-block w-full">
+        <!-- Cards for each day -->
+        {#if weatherData && weatherData.length > 0}
+          <!-- For each location -->
+          {#each weatherData as data, index}
+            <div class="mb-8">
+              <!-- Name -->
+              <h3 class="text-xl font-bold absolute left-8 mb-2">
+                {data.location.name}
+              </h3>
+              <div class="flex space-x-4 pt-8">
+                <!-- Each day -->
+                {#each data.subseasonal.properties.timeseries as series (series.time)}
+                  {#if series.data.next_24_hours}
+                    <div class="flex-shrink-0 border p-4 w-56">
+                      <p class="font-semibold">{formatDate(series.time)}</p>
+                      <p>
+                        Temp:
+                        <span class="font-semibold"
+                          >{series.data.next_24_hours.details
+                            .air_temperature_min}</span
+                        >–
+                        <span class="font-semibold"
+                          >{series.data.next_24_hours.details
+                            .air_temperature_max}</span
+                        >°C
+                      </p>
+                      <p>
+                        Nedbør: <span class="font-semibold"
+                          >{series.data.next_24_hours.details
+                            .precipitation_amount}</span
+                        > mm
+                      </p>
+                      <div>
+                        <svg width="100" height="100">
+                          <!-- Background rectangle -->
+                          <rect
+                            x="0"
+                            y="0"
+                            width="100"
+                            height="100"
+                            fill="white"
+                          />
+                          <!-- Temp spenn -->
+                          <rect
+                            x={100 -
+                              series.data.next_24_hours.details
+                                .air_temperature_max *
+                                3}
+                            y={100 -
+                              series.data.next_24_hours.details
+                                .air_temperature_max *
+                                3}
+                            width={series.data.next_24_hours.details
+                              .air_temperature_max *
+                              3 -
+                              series.data.next_24_hours.details
+                                .air_temperature_min *
+                                3}
+                            height={series.data.next_24_hours.details
+                              .air_temperature_max *
+                              3 -
+                              series.data.next_24_hours.details
+                                .air_temperature_min *
+                                3}
+                            fill="red"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  {/if}
+                {/each}
+              </div>
+            </div>
+          {/each}
+        {/if}
+      </div>
+    </div>
   </div>
 
   <!-- Info -->
@@ -155,16 +245,12 @@
     >
 
     <p class="mt-4">Example Subseasonal:</p>
-    <a
-      class="text-purple-600"
-      href="./api/subseasonal?lat=60.1&lon=9.58"
+    <a class="text-purple-600" href="./api/subseasonal?lat=60.1&lon=9.58"
       >./api/subseasonal?lat=60.1&lon=9.58</a
     >
 
     <p class="mt-4">Example Nowcast:</p>
-    <a
-      class="text-purple-600"
-      href="./api/nowcast?lat=60.1&lon=9.58"
+    <a class="text-purple-600" href="./api/nowcast?lat=60.1&lon=9.58"
       >./api/nowcast?lat=60.1&lon=9.58</a
     >
 
@@ -181,5 +267,11 @@
 <style lang="postcss">
   :global(html) {
     background-color: theme(colors.gray.100);
+  }
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
   }
 </style>
