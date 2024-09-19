@@ -53,7 +53,7 @@ export async function GET({ url }) {
     const response = await fetch(`${apiUrl}?lat=${lat}&lon=${lon}`, { headers });
 
     console.log(`Response status: ${response.status}`);
-    console.log(`Response headers: ${JSON.stringify(response.headers.raw())}`);
+    // console.log(`Response headers: ${JSON.stringify(response.headers.raw())}`);
 
     if (response.status === 304) {
       console.log(`Data not modified, using cached data for (${lat}, ${lon})`);
