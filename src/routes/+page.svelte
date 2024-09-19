@@ -149,29 +149,33 @@
     }
   }
 
-  let xScale;
+  let yScale;
 
   function updateScale() {
     // Flatten the nested structure to extract the max temperatures, safely checking if the data exists
-    const allMaxTemperatures = weatherData.flatMap(location => {
+    const allMaxTemperatures = weatherData.flatMap((location) => {
       // Check if subseasonal and timeseries exist
       if (location.subseasonal && location.subseasonal.properties.timeseries) {
-        return location.subseasonal.properties.timeseries.map(day => {
-          // Check if the next_24_hours and its details exist
-          return day.data?.next_24_hours?.details?.air_temperature_max;
-        }).filter(temp => temp !== undefined); // Filter out undefined temperatures
+        return location.subseasonal.properties.timeseries
+          .map((day) => {
+            // Check if the next_24_hours and its details exist
+            return day.data?.next_24_hours?.details?.air_temperature_max;
+          })
+          .filter((temp) => temp !== undefined); // Filter out undefined temperatures
       } else {
         return []; // Return empty array if no timeseries
       }
     });
 
-    const allMinTemperatures = weatherData.flatMap(location => {
+    const allMinTemperatures = weatherData.flatMap((location) => {
       // Check if subseasonal and timeseries exist
       if (location.subseasonal && location.subseasonal.properties.timeseries) {
-        return location.subseasonal.properties.timeseries.map(day => {
-          // Check if the next_24_hours and its details exist
-          return day.data?.next_24_hours?.details?.air_temperature_min;
-        }).filter(temp => temp !== undefined); // Filter out undefined temperatures
+        return location.subseasonal.properties.timeseries
+          .map((day) => {
+            // Check if the next_24_hours and its details exist
+            return day.data?.next_24_hours?.details?.air_temperature_min;
+          })
+          .filter((temp) => temp !== undefined); // Filter out undefined temperatures
       } else {
         return []; // Return empty array if no timeseries
       }
@@ -186,9 +190,9 @@
       console.log("Max temperature:", maxValue);
 
       // Create a linear scale based on the min and max values
-      xScale = scaleLinear()
-        .domain([minValue, maxValue])
-        .range([0, 500]);
+      yScale = scaleLinear()
+        .domain([minValue - 2, maxValue + 2])
+        .range([dayHeight, 0]);
     } else {
       console.error("No valid temperature data found");
     }
@@ -272,6 +276,21 @@
                     height={dayHeight}
                     fill="white"
                   />
+
+                  <!-- 0 temp line -->
+                  <!-- Could check if 0 should be visible -->
+
+                  <line
+                    x1="0"
+                    y1={yScale(0)}
+                    x2={26 * dayWidth}
+                    y2={yScale(0)}
+                    stroke="#aaaaaa"
+                  />
+
+                  <!-- Temperature area between min and max polygon -->
+                 
+
                   <!-- Percipation -->
                   {#each data.subseasonal.properties.timeseries as series, day (series.time)}
                     {#if series.data.next_24_hours}
@@ -288,33 +307,37 @@
                         fill="#0000ff77"
                       />
 
-                      <!-- Rain in text -->
-                      <text
-                        x={day * dayWidth + dayWidth}
-                        Y={dayHeight -
-                          series.data.next_24_hours.details
-                            .precipitation_amount *
-                            5 -
-                          5}
-                        class="svgText"
-                        text-anchor="end"
-                      >
-                        {series.data.next_24_hours.details.precipitation_amount}
-                      </text>
+                      {#if series.data.next_24_hours.details.precipitation_amount != 0}
+                        <!-- Rain in text -->
+                        <text
+                          x={day * dayWidth + dayWidth / 2}
+                          Y={dayHeight -
+                            series.data.next_24_hours.details
+                              .precipitation_amount *
+                              5 -
+                            5}
+                          class="svgText"
+                          text-anchor="middle"
+                        >
+                          {series.data.next_24_hours.details
+                            .precipitation_amount}
+                        </text>
+                      {/if}
 
                       <!-- Temp rectangle -->
                       <rect
                         x={day * dayWidth}
-                        y={dayHeight -
-                          series.data.next_24_hours.details
-                            .air_temperature_max *
-                            3}
+                        y={yScale(
+                          series.data.next_24_hours.details.air_temperature_max
+                        )}
                         width="4"
-                        height={(series.data.next_24_hours.details
-                          .air_temperature_max -
-                          series.data.next_24_hours.details
-                            .air_temperature_min) *
-                          3}
+                        height={yScale(
+                          series.data.next_24_hours.details.air_temperature_min
+                        ) -
+                          yScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_max
+                          )}
                         fill="#ff000077"
                       />
                     {/if}
