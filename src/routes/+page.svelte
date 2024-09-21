@@ -6,6 +6,7 @@
   import { min, max } from "d3-array";
 
   let weatherData = [];
+  let weatherDataFiltered = [];
   let locations = [
     { name: "Oslo", lat: 59.92, lon: 10.75 },
     { name: "Eikern", lat: 59.62, lon: 10.0 },
@@ -14,11 +15,13 @@
     { name: "Hestenesøyra", lat: 61.84, lon: 6.0 },
     { name: "Finse", lat: 60.6, lon: 7.5 },
   ];
+  let weekendsOnly = true;
 
   // CSV for Yr symbols
   let csvData = [];
 
   const dayWidth = 60;
+  const rainBarWidth = 18;
   const dayHeight = 100;
 
   async function loadCSV() {
@@ -101,6 +104,57 @@
     }
   }
 
+  function filterWeatherData() {
+    if (weekendsOnly) {
+      // filter weekends
+      weatherDataFiltered = weatherData.map((location) => {
+        const filteredTimeseries =
+          location.subseasonal.properties.timeseries.filter((day) => {
+            const date = new Date(day.time);
+            return (
+              date.getDay() === 6 || date.getDay() === 0
+            );
+          }).map((day) => {
+          const date = new Date(day.time);
+          return {
+            ...day,
+            dayNumber: date.getDay()
+          };
+        });
+        return {
+          ...location,
+          subseasonal: {
+            ...location.subseasonal,
+            properties: {
+              ...location.subseasonal.properties,
+              timeseries: filteredTimeseries,
+            },
+          },
+        };
+      });
+    } else {
+    weatherDataFiltered = weatherData.map((location) => {
+      const timeseriesWithDayNumber = location.subseasonal.properties.timeseries.map((day) => {
+        const date = new Date(day.time);
+        return {
+          ...day,
+          dayNumber: date.getDay()
+        };
+      });
+      return {
+        ...location,
+        subseasonal: {
+          ...location.subseasonal,
+          properties: {
+            ...location.subseasonal.properties,
+            timeseries: timeseriesWithDayNumber,
+          },
+        },
+      };
+    });
+  }
+  }
+
   async function fetchWeatherForAllLocations() {
     const promises = locations.map(async (loc) => {
       const nowcast = fetchWeatherFromAPI(loc.lat, loc.lon, "nowcast");
@@ -128,7 +182,11 @@
 
     const results = await Promise.all(promises);
     weatherData = results.filter((data) => data !== null); // Filter out any null responses
-    console.log("Weather data for all locations:", weatherData);
+    weatherDataFiltered = weatherData;
+    filterWeatherData();
+
+    console.log("Filtered weather data for all locations:", weatherDataFiltered);
+
     updateScale();
   }
 
@@ -149,11 +207,14 @@
     }
   }
 
-  let yScale;
+  let tempScale;
+  let rainScale;
+
+  rainScale = scaleLinear().domain([0, 25]).range([dayHeight, 0]);
 
   function updateScale() {
     // Flatten the nested structure to extract the max temperatures, safely checking if the data exists
-    const allMaxTemperatures = weatherData.flatMap((location) => {
+    const allMaxTemperatures = weatherDataFiltered.flatMap((location) => {
       // Check if subseasonal and timeseries exist
       if (location.subseasonal && location.subseasonal.properties.timeseries) {
         return location.subseasonal.properties.timeseries
@@ -167,7 +228,7 @@
       }
     });
 
-    const allMinTemperatures = weatherData.flatMap((location) => {
+    const allMinTemperatures = weatherDataFiltered.flatMap((location) => {
       // Check if subseasonal and timeseries exist
       if (location.subseasonal && location.subseasonal.properties.timeseries) {
         return location.subseasonal.properties.timeseries
@@ -190,7 +251,7 @@
       console.log("Max temperature:", maxValue);
 
       // Create a linear scale based on the min and max values
-      yScale = scaleLinear()
+      tempScale = scaleLinear()
         .domain([minValue - 2, maxValue + 2])
         .range([dayHeight, 0]);
     } else {
@@ -203,28 +264,63 @@
   const svgHeight = 50;
   const barWidth = 3;
 
+  function generateTemperaturePolygon(timeseries) {
+    const dayWidth = 60; // Assuming this is the width per day
+    let points = [];
+
+    // 1. Iterate forward through the timeseries for max temperatures
+    timeseries.forEach((series, day) => {
+      const maxTemp = series.data.next_24_hours.details.air_temperature_max;
+      points.push(`${day * dayWidth + dayWidth / 2},${tempScale(maxTemp)}`);
+    });
+
+    // 2. Iterate backward through the timeseries for min temperatures
+    for (let day = timeseries.length - 1; day >= 0; day--) {
+      const minTemp =
+        timeseries[day].data.next_24_hours.details.air_temperature_min;
+      points.push(`${day * dayWidth + dayWidth / 2},${tempScale(minTemp)}`);
+    }
+
+    return points.join(" ");
+  }
+
+  $: filterWeatherData();
+
+  // Reactive block for weekendsOnly
+  $: if (weekendsOnly !== undefined) {
+    filterWeatherData();
+  }
+
   onMount(() => {
     loadCSV();
     fetchWeatherForAllLocations();
+    filterWeatherData();
   });
 </script>
 
+<!-- svelte-ignore non-top-level-reactive-declaration -->
 <main class="flex flex-col items-center">
   <!-- Heading -->
-  <h1 class="text-3xl font-bold my-8">YrTur</h1>
+  <h1 class="text-3xl font-bold my-8">Helgeplanlegger</h1>
+
+  <label>
+    <input type="checkbox" bind:checked={weekendsOnly} onclick="{filterWeatherData}"/>
+    Vis kun helger
+  </label>
 
   <!-- Data for all locations -->
   <div class="relative w-full overflow-hidden my-8">
-    <div class="w-[150%] overflow-x-auto whitespace-nowrap">
+    <div class="w-[150%] overflow-x-auto">
       <div class="inline-block w-full">
-        {#if weatherData && weatherData.length > 0}
+        {#if weatherDataFiltered && weatherDataFiltered.length > 0}
           <!-- For each location -->
-          {#each weatherData as data, index}
+          {#each weatherDataFiltered as data, index}
             <!-- x axis days above first location-->
             {#if index === 0}
               <div class="pl-6 pb-4">
                 <svg width={1910} height="40">
                   <!-- Background rectangle -->
+                  <!-- 
                   <rect
                     x="0"
                     y="0"
@@ -232,24 +328,26 @@
                     height="40"
                     fill="white"
                   />
+                  -->
                   <!-- For each day -->
                   {#each data.subseasonal.properties.timeseries as series, day (series.time)}
                     {#if series.data.next_24_hours}
                       <!-- Day in text -->
                       <text
-                        x={day * dayWidth}
+                        x={day * dayWidth + dayWidth / 2}
                         Y="20"
-                        class=""
-                        text-anchor="start"
+                        font-size="16px"
+                        text-anchor="middle"
+                        font-weight="{series.dayNumber === 6 || series.dayNumber === 0 ? "bold" : "normal"}" 
                       >
                         {formatDate(series.time, "day")}
                       </text>
 
                       <text
-                        x={day * dayWidth}
+                        x={day * dayWidth + dayWidth / 2}
                         Y="40"
-                        class=""
-                        text-anchor="start"
+                        font-size="14px"
+                        text-anchor="middle"
                       >
                         {formatDate(series.time, "date")}
                       </text>
@@ -259,16 +357,18 @@
               </div>
             {/if}
 
+            <!-- weather data for each day -->
             <div class="mb-4">
               <!-- Name of location -->
               <h3 class="text-xl font-bold absolute left-8 mb-2">
                 {data.location.name}
               </h3>
 
-              <!-- SVG -->
-              <div class="pt-0 pl-6">
+              <!-- SVG per location-->
+              <div class="pt-6 pl-6">
                 <svg width={1910} height={dayHeight}>
-                  <!-- Background rectangle -->
+                  <!-- Background rectangle full width -->
+                  <!--
                   <rect
                     x="0"
                     y="0"
@@ -276,70 +376,120 @@
                     height={dayHeight}
                     fill="white"
                   />
+                  -->
 
-                  <!-- 0 temp line -->
-                  <!-- Could check if 0 should be visible -->
-
+                  <!-- 0 degree temp line -->
                   <line
                     x1="0"
-                    y1={yScale(0)}
+                    y1={tempScale(0) - 1}
                     x2={26 * dayWidth}
-                    y2={yScale(0)}
-                    stroke="#aaaaaa"
+                    y2={tempScale(0) - 1}
+                    stroke="#ff000044"
+                  />
+                  <line
+                    x1="0"
+                    y1={tempScale(0) + 1}
+                    x2={26 * dayWidth}
+                    y2={tempScale(0) + 1}
+                    stroke="#0000ff44"
                   />
 
-                  <!-- Temperature area between min and max polygon -->
-                 
+                  <!-- Temperature polygon between min and max polygon -->
+                  <!--
+                  <polygon
+                    points="{generateTemperaturePolygon(data.subseasonal.properties.timeseries)}"
+                    fill="#ff000044"        
+                    stroke="#ff0000"         
+                    stroke-width="2"         
+                    stroke-opacity="0.6"    
+                    opacity="0.8"     
+                  />
+                   -->
 
-                  <!-- Percipation -->
+                  <!-- draw day by day -->
                   {#each data.subseasonal.properties.timeseries as series, day (series.time)}
                     {#if series.data.next_24_hours}
-                      <!-- Rainy rectangle -->
+                      <!-- Background rectangle for weekend-->
+                      {#if series.dayNumber === 6 || series.dayNumber === 0}
+                        <rect
+                          x={day * dayWidth}
+                          y="0"
+                          width={dayWidth}
+                          height={dayHeight}
+                          fill="white"
+                        />
+                      {/if}
+
+                      <!-- Temperature rectangle -->
                       <rect
-                        x={day * dayWidth}
-                        y={dayHeight -
-                          series.data.next_24_hours.details
-                            .precipitation_amount *
-                            5}
-                        width={dayWidth}
-                        height={series.data.next_24_hours.details
-                          .precipitation_amount * 5}
-                        fill="#0000ff77"
+                        x={day * dayWidth + 4}
+                        y={tempScale(
+                          series.data.next_24_hours.details.air_temperature_max
+                        )}
+                        width={dayWidth - 8}
+                        height={tempScale(
+                          series.data.next_24_hours.details.air_temperature_min
+                        ) -
+                          tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_max
+                          )}
+                        fill="#ff000033"
+                      />
+                      <!-- Temperature max line -->
+                      <line
+                        x1={day * dayWidth + 4}
+                        y1={tempScale(
+                          series.data.next_24_hours.details.air_temperature_max
+                        )}
+                        x2={day * dayWidth + dayWidth - 4}
+                        y2={tempScale(
+                          series.data.next_24_hours.details.air_temperature_max
+                        )}
+                        stroke="#ff0000"
+                      />
+                      <!-- Temperature min line -->
+                      <line
+                        x1={day * dayWidth + 4}
+                        y1={tempScale(
+                          series.data.next_24_hours.details.air_temperature_min
+                        )}
+                        x2={day * dayWidth + dayWidth - 4}
+                        y2={tempScale(
+                          series.data.next_24_hours.details.air_temperature_min
+                        )}
+                        stroke="#ff0000"
+                      />
+
+                      <!-- Rain rectangle -->
+                      <rect
+                        x={day * dayWidth + dayWidth / 2 - rainBarWidth / 2}
+                        y={rainScale(
+                          series.data.next_24_hours.details.precipitation_amount
+                        )}
+                        width={rainBarWidth}
+                        height={rainScale(0) -
+                          rainScale(
+                            series.data.next_24_hours.details
+                              .precipitation_amount
+                          )}
+                        fill="#0000ffcc"
                       />
 
                       {#if series.data.next_24_hours.details.precipitation_amount != 0}
-                        <!-- Rain in text -->
+                        <!-- Rain as text -->
                         <text
                           x={day * dayWidth + dayWidth / 2}
-                          Y={dayHeight -
-                            series.data.next_24_hours.details
-                              .precipitation_amount *
-                              5 -
-                            5}
-                          class="svgText"
+                          Y={rainScale(series.data.next_24_hours.details
+                              .precipitation_amount)-5
+                            }
+                          class="svgText textOutline"
                           text-anchor="middle"
                         >
                           {series.data.next_24_hours.details
                             .precipitation_amount}
                         </text>
                       {/if}
-
-                      <!-- Temp rectangle -->
-                      <rect
-                        x={day * dayWidth}
-                        y={yScale(
-                          series.data.next_24_hours.details.air_temperature_max
-                        )}
-                        width="4"
-                        height={yScale(
-                          series.data.next_24_hours.details.air_temperature_min
-                        ) -
-                          yScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          )}
-                        fill="#ff000077"
-                      />
                     {/if}
                   {/each}
                 </svg>
@@ -352,43 +502,6 @@
   </div>
 
   <!-- Info -->
-  <div class="flex flex-col mt-8 w-full max-w-[800px] items-start grow">
-    <h1 class="text-3xl font-bold">YrTur info</h1>
-    <p>
-      <a
-        href="https://api.met.no/weatherapi/locationforecast/2.0/documentation"
-      >
-        MET Location Forecast
-      </a>
-    </p>
-    <p class="mt-4">Example Location Forecast Complete:</p>
-    <a
-      class="text-purple-600"
-      href="./api/location-forecast-complete?lat=60.1&lon=9.58"
-    >
-      ./api/location-forecast-complete?lat=60.1&lon=9.58
-    </a>
-
-    <p class="mt-4">Example Subseasonal:</p>
-    <a class="text-purple-600" href="./api/subseasonal?lat=60.1&lon=9.58">
-      ./api/subseasonal?lat=60.1&lon=9.58
-    </a>
-
-    <p class="mt-4">Example Nowcast:</p>
-    <a class="text-purple-600" href="./api/nowcast?lat=60.1&lon=9.58">
-      ./api/nowcast?lat=60.1&lon=9.58
-    </a>
-
-    <p class="mt-4">
-      Example data transformed in a <a
-        class="text-purple-600"
-        href="https://docs.google.com/spreadsheets/d/1H8TS_eymRtk_oridPHOtUqVuF7h8Ps_0D1xbQYBbNKI/edit?gid=0#gid=0"
-      >
-        Google sheet
-      </a>
-      .
-    </p>
-  </div>
 </main>
 
 <style lang="postcss">
@@ -405,5 +518,13 @@
   .svgText {
     font: regular 8px sans-serif;
     fill: blue;
+  }
+
+  .textOutline {
+    text-shadow:
+      1px 1px 0 theme(colors.gray.100),
+      /* bottom-right */ -1px -1px 0 theme(colors.gray.100),
+      /* top-left */ 1px -1px 0 theme(colors.gray.100),
+      /* top-right */ -1px 1px 0 theme(colors.gray.100); /* bottom-left */
   }
 </style>
