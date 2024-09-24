@@ -15,14 +15,69 @@
     { name: "Hestenesøyra", lat: 61.84, lon: 6.0 },
     { name: "Finse", lat: 60.6, lon: 7.5 },
   ];
-  let weekendsOnly = true;
+  let weekendsOnly = false;
+
+  function exampleLocations(location) {
+    switch (location) {
+      case "Sør-Norge":
+        locations = [
+          { name: "Oslo", lat: 59.92, lon: 10.75 },
+          { name: "Bergen", lat: 60.39, lon: 5.32 },
+          { name: "Stavanger", lat: 58.97, lon: 5.73 },
+          { name: "Drammen", lat: 59.74, lon: 10.2 },
+          { name: "Kristiansand", lat: 58.15, lon: 7.99 },
+        ];
+        console.log("Loading Sør-Norge..");
+        break;
+      case "skidestinasjoner":
+        locations = [
+          { name: "Trysil", lat: 61.31, lon: 12.26 },
+          { name: "Hemsedal", lat: 60.87, lon: 8.55 },
+          { name: "Hafjell", lat: 61.24, lon: 10.44 },
+          { name: "Geilo", lat: 60.53, lon: 8.2 },
+          { name: "Kvitfjell", lat: 61.45, lon: 10.14 },
+        ];
+        console.log("Loading skidestinasjoner..");
+        break;
+      case "Norden":
+        locations = [
+          { name: "Stockholm", lat: 59.33, lon: 18.06 },
+          { name: "København", lat: 55.68, lon: 12.57 },
+          { name: "Helsingfors", lat: 60.17, lon: 24.94 },
+          { name: "Oslo", lat: 59.91, lon: 10.75 },
+          { name: "Göteborg", lat: 57.71, lon: 11.97 },
+        ];
+        console.log("Loading Norden..");
+        break;
+      default:
+        locations = [{ name: "Oslo", lat: 59.92, lon: 10.75 }];
+    }
+
+    fetchWeatherForAllLocations();
+    filterWeatherData();
+  }
 
   // CSV for Yr symbols
   let csvData = [];
 
   const dayWidth = 60;
   const rainBarWidth = 18;
-  const dayHeight = 100;
+  const dayHeight = 180;
+
+  let svgTotalWidth = 100;
+  // $: console.log("SVG width changed: ", svgTotalWidth);
+
+  // Reactive block for weekendsOnly
+  $: if (weatherDataFiltered[0]?.subseasonal) {
+    // console.log("we have data");
+    if (weatherDataFiltered[0].subseasonal.properties.timeseries) {
+      svgTotalWidth =
+        weatherDataFiltered[0].subseasonal.properties.timeseries.length *
+        dayWidth;
+    } else {
+      svgTotalWidth = 10;
+    }
+  }
 
   async function loadCSV() {
     const response = await fetch("weather.csv");
@@ -108,19 +163,18 @@
     if (weekendsOnly) {
       // filter weekends
       weatherDataFiltered = weatherData.map((location) => {
-        const filteredTimeseries =
-          location.subseasonal.properties.timeseries.filter((day) => {
+        const filteredTimeseries = location.subseasonal.properties.timeseries
+          .filter((day) => {
             const date = new Date(day.time);
-            return (
-              date.getDay() === 6 || date.getDay() === 0
-            );
-          }).map((day) => {
-          const date = new Date(day.time);
-          return {
-            ...day,
-            dayNumber: date.getDay()
-          };
-        });
+            return date.getDay() === 6 || date.getDay() === 0;
+          })
+          .map((day) => {
+            const date = new Date(day.time);
+            return {
+              ...day,
+              dayNumber: date.getDay(),
+            };
+          });
         return {
           ...location,
           subseasonal: {
@@ -133,47 +187,49 @@
         };
       });
     } else {
-    weatherDataFiltered = weatherData.map((location) => {
-      const timeseriesWithDayNumber = location.subseasonal.properties.timeseries.map((day) => {
-        const date = new Date(day.time);
+      weatherDataFiltered = weatherData.map((location) => {
+        const timeseriesWithDayNumber =
+          location.subseasonal.properties.timeseries.map((day) => {
+            const date = new Date(day.time);
+            return {
+              ...day,
+              dayNumber: date.getDay(),
+            };
+          });
         return {
-          ...day,
-          dayNumber: date.getDay()
+          ...location,
+          subseasonal: {
+            ...location.subseasonal,
+            properties: {
+              ...location.subseasonal.properties,
+              timeseries: timeseriesWithDayNumber,
+            },
+          },
         };
       });
-      return {
-        ...location,
-        subseasonal: {
-          ...location.subseasonal,
-          properties: {
-            ...location.subseasonal.properties,
-            timeseries: timeseriesWithDayNumber,
-          },
-        },
-      };
-    });
-  }
+    }
+
+    if (weatherDataFiltered[0]?.subseasonal) {
+      svgTotalWidth =
+        weatherDataFiltered[0].subseasonal.properties.timeseries.length *
+        dayWidth;
+    }
   }
 
   async function fetchWeatherForAllLocations() {
     const promises = locations.map(async (loc) => {
-      const nowcast = fetchWeatherFromAPI(loc.lat, loc.lon, "nowcast");
+      // const nowcast = fetchWeatherFromAPI(loc.lat, loc.lon, "nowcast");
       const subseasonal = fetchWeatherFromAPI(loc.lat, loc.lon, "subseasonal");
-      const locationforecast = fetchWeatherFromAPI(
-        loc.lat,
-        loc.lon,
-        "locationforecast"
-      );
+      // const locationforecast = fetchWeatherFromAPI(loc.lat, loc.lon,"locationforecast");
 
-      const [nowcastData, subseasonalData, locationforecastData] =
-        await Promise.all([nowcast, subseasonal, locationforecast]);
+      const [subseasonalData] = await Promise.all([subseasonal]);
 
-      if (nowcastData && subseasonalData && locationforecastData) {
+      if (subseasonalData) {
         return {
           location: loc,
-          nowcast: nowcastData,
+          // nowcast: nowcastData,
           subseasonal: subseasonalData,
-          locationforecast: locationforecastData,
+          // locationforecast: locationforecastData,
         };
       } else {
         return null; // Filter out any incomplete data
@@ -185,7 +241,10 @@
     weatherDataFiltered = weatherData;
     filterWeatherData();
 
-    console.log("Filtered weather data for all locations:", weatherDataFiltered);
+    console.log(
+      "Filtered weather data for all locations:",
+      weatherDataFiltered
+    );
 
     updateScale();
   }
@@ -209,8 +268,6 @@
 
   let tempScale;
   let rainScale;
-
-  rainScale = scaleLinear().domain([0, 25]).range([dayHeight, 0]);
 
   function updateScale() {
     // Flatten the nested structure to extract the max temperatures, safely checking if the data exists
@@ -253,9 +310,42 @@
       // Create a linear scale based on the min and max values
       tempScale = scaleLinear()
         .domain([minValue - 2, maxValue + 2])
-        .range([dayHeight, 0]);
+        .range([dayHeight/3*2, 10]);
     } else {
-      console.error("No valid temperature data found");
+      // console.error("No valid temperature data found");
+    }
+
+    const allMaxRain = weatherDataFiltered.flatMap((location) => {
+      // Check if subseasonal and timeseries exist
+      if (location.subseasonal && location.subseasonal.properties.timeseries) {
+        return location.subseasonal.properties.timeseries
+          .map((day) => {
+            // Check if the next_24_hours and its details exist
+            return day.data?.next_24_hours?.details?.precipitation_amount;
+          })
+          .filter((rain) => rain !== undefined); // Filter out undefined temperatures
+      } else {
+        return []; // Return empty array if no timeseries
+      }
+    });
+
+    // Check if there are rain to min and max
+    if (allMaxRain.length > 0) {
+      const maxValue = max(allMaxRain);
+
+      console.log("Max rain:", maxValue);
+
+      if (maxValue > 20) {
+        rainScale = scaleLinear()
+          .domain([0, maxValue])
+          .range([dayHeight - 5, dayHeight/2-5]);
+      } else {
+        rainScale = scaleLinear()
+          .domain([0, 20])
+          .range([dayHeight - 5, dayHeight/2-5]);
+      }
+    } else {
+      // console.error("No valid rain data found");
     }
   }
 
@@ -289,6 +379,7 @@
   // Reactive block for weekendsOnly
   $: if (weekendsOnly !== undefined) {
     filterWeatherData();
+    updateScale();
   }
 
   onMount(() => {
@@ -299,26 +390,62 @@
 </script>
 
 <!-- svelte-ignore non-top-level-reactive-declaration -->
-<main class="flex flex-col items-center">
-  <!-- Heading -->
-  <h1 class="text-3xl font-bold my-8">Helgeplanlegger</h1>
+<main class="">
+  <div class="mx-3 mt-4">
+    <!-- Heading -->
+    <h1 class="text-3xl font-bold mb-1">Helge&shy;planlegger'n</h1>
+    <h2 class="text-xl mb-5">Sammenlign langtidsvarsel for steder i Norden</h2>
 
-  <label>
-    <input type="checkbox" bind:checked={weekendsOnly} onclick="{filterWeatherData}"/>
-    Vis kun helger
-  </label>
+    <p class="mb-3">
+      Sammenlig <a
+        href="#"
+        on:click={() => exampleLocations("Sør-Norge")}
+        class="text-pink-600 underline decoration-dotted"
+        role="button"
+      >byer i Sør-Norge</a>,
+      <a
+        href="#"
+        on:click={() => exampleLocations("skidestinasjoner")}
+        class="text-pink-600 underline decoration-dotted"
+        role="button"
+      >
+        skidestinasjoner i Norge</a>,
+      <a
+        href="#"
+        on:click={() => exampleLocations("Norden")}
+        class="text-pink-600 underline decoration-dotted"
+        role="button"
+      >
+        byer i Norden</a>, eller søk opp dine egne favoritter!
+    </p>
+
+    <label>
+      <input
+        type="checkbox"
+        bind:checked={weekendsOnly}
+        onclick={() => {
+          filterWeatherData();
+          updateScale();
+          svgTotalWidth =
+            weatherDataFiltered[0].subseasonal.properties.timeseries.length *
+            dayWidth;
+        }}
+      />
+      Vis kun helger
+    </label>
+  </div>
 
   <!-- Data for all locations -->
   <div class="relative w-full overflow-hidden my-8">
-    <div class="w-[150%] overflow-x-auto">
-      <div class="inline-block w-full">
+    <div class="flex overflow-x-auto min-w-0">
+      <div class="flex-shrink-0 w-full">
         {#if weatherDataFiltered && weatherDataFiltered.length > 0}
           <!-- For each location -->
           {#each weatherDataFiltered as data, index}
             <!-- x axis days above first location-->
             {#if index === 0}
-              <div class="pl-6 pb-4">
-                <svg width={1910} height="40">
+              <div class="pl-[80px] pb-4">
+                <svg width={svgTotalWidth} height="40">
                   <!-- Background rectangle -->
                   <!-- 
                   <rect
@@ -338,7 +465,10 @@
                         Y="20"
                         font-size="16px"
                         text-anchor="middle"
-                        font-weight="{series.dayNumber === 6 || series.dayNumber === 0 ? "bold" : "normal"}" 
+                        font-weight={series.dayNumber === 6 ||
+                        series.dayNumber === 0
+                          ? "bold"
+                          : "normal"}
                       >
                         {formatDate(series.time, "day")}
                       </text>
@@ -358,15 +488,31 @@
             {/if}
 
             <!-- weather data for each day -->
-            <div class="mb-4">
-              <!-- Name of location -->
-              <h3 class="text-xl font-bold absolute left-8 mb-2">
-                {data.location.name}
-              </h3>
+            <div class="mb-2  ">
+
+              <!-- Fixed left area per location -->
+              <div
+                class="w-[80px] absolute left-0 bg-white flex items-center shadow-[0_0_5px_5px_rgba(255,255,255,1.0)] border-b-2"
+                style="width: 80px; height: {dayHeight}px;"
+              >
+                <!-- Name of location -->
+                <div class="w-[40px] h-full flex justify-center items-center">
+                  <h3 class="transform -rotate-90 origin-center whitespace-nowrap text-xl font-medium ">
+                    {data.location.name}
+                  </h3>
+               </div>
+
+                <!-- Y axis -->
+               <div>
+                <svg width="20" height="20">
+                  <circle cx="10" cy="10" r="10" fill="red" />
+                </svg>
+               </div>
+              </div>
 
               <!-- SVG per location-->
-              <div class="pt-6 pl-6">
-                <svg width={1910} height={dayHeight}>
+              <div class="pl-[85px]">
+                <svg width={svgTotalWidth} height={dayHeight} class="border-b-2 bg-white">
                   <!-- Background rectangle full width -->
                   <!--
                   <rect
@@ -381,18 +527,12 @@
                   <!-- 0 degree temp line -->
                   <line
                     x1="0"
-                    y1={tempScale(0) - 1}
-                    x2={26 * dayWidth}
-                    y2={tempScale(0) - 1}
-                    stroke="#ff000044"
+                    y1={tempScale(0)}
+                    x2={svgTotalWidth}
+                    y2={tempScale(0)}
+                    stroke="#00000044"
                   />
-                  <line
-                    x1="0"
-                    y1={tempScale(0) + 1}
-                    x2={26 * dayWidth}
-                    y2={tempScale(0) + 1}
-                    stroke="#0000ff44"
-                  />
+             
 
                   <!-- Temperature polygon between min and max polygon -->
                   <!--
@@ -409,16 +549,18 @@
                   <!-- draw day by day -->
                   {#each data.subseasonal.properties.timeseries as series, day (series.time)}
                     {#if series.data.next_24_hours}
-                      <!-- Background rectangle for weekend-->
-                      {#if series.dayNumber === 6 || series.dayNumber === 0}
-                        <rect
-                          x={day * dayWidth}
-                          y="0"
-                          width={dayWidth}
-                          height={dayHeight}
-                          fill="white"
-                        />
-                      {/if}
+         
+
+                        <!-- Line on the side of sunday -->
+                        {#if series.dayNumber === 0}
+                          <line
+                            x1={day * dayWidth + dayWidth}
+                            y1="0"
+                            x2={day * dayWidth + dayWidth}
+                            y2={dayHeight}
+                            stroke="#00000055"
+                          />
+                        {/if}
 
                       <!-- Temperature rectangle -->
                       <rect
@@ -480,9 +622,10 @@
                         <!-- Rain as text -->
                         <text
                           x={day * dayWidth + dayWidth / 2}
-                          Y={rainScale(series.data.next_24_hours.details
-                              .precipitation_amount)-5
-                            }
+                          Y={rainScale(
+                            series.data.next_24_hours.details
+                              .precipitation_amount
+                          ) - 5}
                           class="svgText textOutline"
                           text-anchor="middle"
                         >
@@ -506,7 +649,7 @@
 
 <style lang="postcss">
   :global(html) {
-    background-color: theme(colors.gray.100);
+    background-color: theme(colors.gray.50);
   }
 
   html,
@@ -523,8 +666,8 @@
   .textOutline {
     text-shadow:
       1px 1px 0 theme(colors.gray.100),
-      /* bottom-right */ -1px -1px 0 theme(colors.gray.100),
-      /* top-left */ 1px -1px 0 theme(colors.gray.100),
-      /* top-right */ -1px 1px 0 theme(colors.gray.100); /* bottom-left */
+      -1px -1px 0 theme(colors.gray.100),
+      1px -1px 0 theme(colors.gray.100),
+      -1px 1px 0 theme(colors.gray.100);
   }
 </style>
