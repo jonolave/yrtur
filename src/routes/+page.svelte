@@ -4,6 +4,7 @@
   import Papa from "papaparse"; // for csv parsing
   import { scaleLinear } from "d3-scale";
   import { min, max } from "d3-array";
+  import PlaceSearch from "$lib/components/PlaceSearch.svelte";
 
   let weatherData = [];
   let weatherDataFiltered = [];
@@ -11,11 +12,26 @@
     { name: "Oslo", lat: 59.92, lon: 10.75 },
     { name: "Eikern", lat: 59.62, lon: 10.0 },
     { name: "Filefjell", lat: 61.17, lon: 8.2 },
-    { name: "Leikanger", lat: 61.18, lon: 6.8 },
+    // { name: "Leikanger", lat: 61.18, lon: 6.8 },
     { name: "Hestenesøyra", lat: 61.84, lon: 6.0 },
-    { name: "Finse", lat: 60.6, lon: 7.5 },
+    // { name: "Finse", lat: 60.6, lon: 7.5 },
   ];
   let weekendsOnly = false;
+
+  const handleAddPlace = (event) => {
+    const newPlace = event.detail.position;
+
+    console.log("Adding ", newPlace.display_name);
+
+    locations.push({
+      name: newPlace.name,
+      lat: newPlace.lat,
+      lon: newPlace.lon,
+    });
+
+    fetchWeatherForAllLocations();
+    filterWeatherData();
+  };
 
   function exampleLocations(location) {
     switch (location) {
@@ -60,7 +76,11 @@
   // CSV for Yr symbols
   let csvData = [];
 
-  const dayWidth = 60;
+  const weekDayWidth = 20;
+  const weekEndDayWidth = 60;
+  let weekDays = 0;
+  let weekendDays = 0;
+
   const dayHeight = 140;
   const rainBarWidth = 18;
   const svgLeftPadding = 70;
@@ -73,9 +93,10 @@
   $: if (weatherDataFiltered[0]?.subseasonal) {
     // console.log("we have data");
     if (weatherDataFiltered[0].subseasonal.properties.timeseries) {
-      svgTotalWidth =
-        weatherDataFiltered[0].subseasonal.properties.timeseries.length *
-        dayWidth;
+      svgTotalWidth = weekDays * weekDayWidth + weekendDays * weekEndDayWidth;
+
+      // weatherDataFiltered[0].subseasonal.properties.timeseries.length *
+      // weekDayWidth;
     } else {
       svgTotalWidth = 10;
     }
@@ -162,9 +183,17 @@
   }
 
   function filterWeatherData() {
+    let xPixelStart = 0;
+    let currentWidth = 0;
+
     if (weekendsOnly) {
       // filter weekends
       weatherDataFiltered = weatherData.map((location) => {
+        weekDays = 0;
+        weekendDays = 0;
+        xPixelStart = 0;
+        currentWidth = 0;
+
         const filteredTimeseries = location.subseasonal.properties.timeseries
           .filter((day) => {
             const date = new Date(day.time);
@@ -172,9 +201,19 @@
           })
           .map((day) => {
             const date = new Date(day.time);
+            if (date.getDay() === 0 || date.getDay() === 6) {
+              weekendDays += 1;
+              currentWidth = weekEndDayWidth;
+              xPixelStart += currentWidth;
+            } else {
+              weekDays += 1;
+              currentWidth = weekDayWidth;
+              xPixelStart += currentWidth;
+            }
             return {
               ...day,
               dayNumber: date.getDay(),
+              xPixelStart: xPixelStart - currentWidth,
             };
           });
         return {
@@ -190,12 +229,27 @@
       });
     } else {
       weatherDataFiltered = weatherData.map((location) => {
+        weekDays = 0;
+        weekendDays = 0;
+        xPixelStart = 0;
+        currentWidth = 0;
+
         const timeseriesWithDayNumber =
           location.subseasonal.properties.timeseries.map((day) => {
             const date = new Date(day.time);
+            if (date.getDay() === 0 || date.getDay() === 6) {
+              weekendDays += 1;
+              currentWidth = weekEndDayWidth;
+              xPixelStart += currentWidth;
+            } else {
+              weekDays += 1;
+              currentWidth = weekDayWidth;
+              xPixelStart += currentWidth;
+            }
             return {
               ...day,
               dayNumber: date.getDay(),
+              xPixelStart: xPixelStart - currentWidth,
             };
           });
         return {
@@ -212,9 +266,10 @@
     }
 
     if (weatherDataFiltered[0]?.subseasonal) {
-      svgTotalWidth =
-        weatherDataFiltered[0].subseasonal.properties.timeseries.length *
-        dayWidth;
+      svgTotalWidth = weekDays * weekDayWidth + weekendDays * weekEndDayWidth;
+
+      // weatherDataFiltered[0].subseasonal.properties.timeseries.length *
+      // weekDayWidth;
     }
   }
 
@@ -272,6 +327,11 @@
   let rainScale;
 
   function updateScale() {
+    const pixelsAboveTemp = 24;
+    const tempShareOfHeight = 0.7;
+    const pixelsBelowRain = 6;
+    const rainShareOfHeight = 0.5;
+
     // Flatten the nested structure to extract the max temperatures, safely checking if the data exists
     const allMaxTemperatures = weatherDataFiltered.flatMap((location) => {
       // Check if subseasonal and timeseries exist
@@ -311,8 +371,8 @@
 
       // Create a linear scale based on the min and max values
       tempScale = scaleLinear()
-        .domain([minValue - 2, maxValue + 2])
-        .range([(dayHeight / 3) * 2, 10]);
+        .domain([minValue, maxValue])
+        .range([dayHeight * tempShareOfHeight, pixelsAboveTemp]);
     } else {
       // console.error("No valid temperature data found");
     }
@@ -340,11 +400,11 @@
       if (maxValue > 20) {
         rainScale = scaleLinear()
           .domain([0, maxValue])
-          .range([dayHeight - 5, dayHeight / 2 - 5]);
+          .range([dayHeight - pixelsBelowRain, dayHeight - dayHeight * rainShareOfHeight]);
       } else {
         rainScale = scaleLinear()
           .domain([0, 20])
-          .range([dayHeight - 5, dayHeight / 2 - 5]);
+          .range([dayHeight - pixelsBelowRain, dayHeight - dayHeight * rainShareOfHeight]);
       }
     } else {
       // console.error("No valid rain data found");
@@ -446,14 +506,16 @@
           filterWeatherData();
           updateScale();
           svgTotalWidth =
-            weatherDataFiltered[0].subseasonal.properties.timeseries.length *
-            dayWidth;
+            weekDays * weekDayWidth + weekendDays * weekEndDayWidth;
+
+          // weatherDataFiltered[0].subseasonal.properties.timeseries.length *
+          // weekDayWidth;
         }}
       />
       Vis kun helger
     </label>
 
-    <p>Showing day number {Math.round(scrollDistance / dayWidth)}</p>
+    <!-- <p>Showing day number {Math.round(scrollDistance / dayWidth)}</p> -->
   </div>
 
   <!-- Data for all locations -->
@@ -480,28 +542,40 @@
                   <!-- For each day -->
                   {#each data.subseasonal.properties.timeseries as series, day (series.time)}
                     {#if series.data.next_24_hours}
-                      <!-- Day in text -->
-                      <text
-                        x={day * dayWidth + dayWidth / 2}
-                        Y="20"
-                        font-size="16px"
-                        text-anchor="middle"
-                        font-weight={series.dayNumber === 6 ||
-                        series.dayNumber === 0
-                          ? "bold"
-                          : "normal"}
-                      >
-                        {formatDate(series.time, "day")}
-                      </text>
+                      {#if series.dayNumber === 6 || series.dayNumber === 0}
+                        <!-- Day in text -->
+                        <text
+                          x={series.xPixelStart + weekEndDayWidth / 2}
+                          Y="20"
+                          font-size="16px"
+                          text-anchor="middle"
+                          font-weight={series.dayNumber === 6 ||
+                          series.dayNumber === 0
+                            ? "bold"
+                            : "normal"}
+                        >
+                          {formatDate(series.time, "day")}
+                        </text>
 
-                      <text
-                        x={day * dayWidth + dayWidth / 2}
-                        Y="40"
-                        font-size="14px"
-                        text-anchor="middle"
-                      >
-                        {formatDate(series.time, "date")}
-                      </text>
+                        <text
+                          x={series.xPixelStart + weekEndDayWidth / 2}
+                          Y="40"
+                          font-size="14px"
+                          text-anchor="middle"
+                        >
+                          {formatDate(series.time, "date")}
+                        </text>
+                      {:else if series.dayNumber === 3}
+                        <text
+                          x={series.xPixelStart + weekDayWidth / 2}
+                          Y="20"
+                          font-size="16px"
+                          text-anchor="middle"
+                          font-weight="normal"
+                        >
+                          man - fre
+                        </text>
+                      {/if}
                     {/if}
                   {/each}
                 </svg>
@@ -542,10 +616,13 @@
 
               <!-- SVG per location-->
               <div
-                class=""
-                style="width: {svgTotalWidth + svgLeftPadding + 32}px;"
+                class="flex items-center"
+                style="width: {svgTotalWidth + svgLeftPadding + 240}px;"
               >
-                <svg width={svgTotalWidth + svgLeftPadding + 16} height={dayHeight}>
+                <svg
+                  width={svgTotalWidth + svgLeftPadding + 16}
+                  height={dayHeight}
+                >
                   <!-- Background rectangle full width -->
                   <rect
                     x="0"
@@ -559,7 +636,7 @@
 
                   <!-- 0 degree temp line -->
                   <line
-                    x1="{svgLeftPadding}"
+                    x1={svgLeftPadding}
                     y1={tempScale(0)}
                     x2={svgTotalWidth + svgLeftPadding}
                     y2={tempScale(0)}
@@ -581,91 +658,202 @@
                   <!-- draw day by day -->
                   {#each data.subseasonal.properties.timeseries as series, day (series.time)}
                     {#if series.data.next_24_hours}
-                      <!-- Line on the side of sunday -->
-                      {#if series.dayNumber === 0}
-                        <line
-                          x1={day * dayWidth + dayWidth + svgLeftPadding}
-                          y1="0"
-                          x2={day * dayWidth + dayWidth + svgLeftPadding}
-                          y2={dayHeight}
-                          stroke="#00000055"
-                        />
-                      {/if}
-
-                      <!-- Temperature rectangle -->
-                      <rect
-                        x={day * dayWidth + 4 + svgLeftPadding}
-                        y={tempScale(
-                          series.data.next_24_hours.details.air_temperature_max
-                        )}
-                        width={dayWidth - 8}
-                        height={tempScale(
-                          series.data.next_24_hours.details.air_temperature_min
-                        ) -
-                          tempScale(
+                      <!-- Draw weekend data -->
+                      {#if series.dayNumber === 6 || series.dayNumber === 0}
+                        <!-- Temperature rectangle -->
+                        <rect
+                          x={series.xPixelStart + 4 + svgLeftPadding}
+                          y={tempScale(
                             series.data.next_24_hours.details
                               .air_temperature_max
                           )}
-                        fill="#ff000033"
-                      />
-                      <!-- Temperature max line -->
-                      <line
-                        x1={day * dayWidth + 4 + svgLeftPadding}
-                        y1={tempScale(
-                          series.data.next_24_hours.details.air_temperature_max
-                        )}
-                        x2={day * dayWidth + dayWidth - 4 + svgLeftPadding}
-                        y2={tempScale(
-                          series.data.next_24_hours.details.air_temperature_max
-                        )}
-                        stroke="#ff0000"
-                      />
-                      <!-- Temperature min line -->
-                      <line
-                        x1={day * dayWidth + 4 + svgLeftPadding}
-                        y1={tempScale(
-                          series.data.next_24_hours.details.air_temperature_min
-                        )}
-                        x2={day * dayWidth + dayWidth - 4 + svgLeftPadding}
-                        y2={tempScale(
-                          series.data.next_24_hours.details.air_temperature_min
-                        )}
-                        stroke="#ff0000"
-                      />
-
-                      <!-- Rain rectangle -->
-                      <rect
-                        x={day * dayWidth + dayWidth / 2 - rainBarWidth / 2 + svgLeftPadding}
-                        y={rainScale(
-                          series.data.next_24_hours.details.precipitation_amount
-                        )}
-                        width={rainBarWidth}
-                        height={rainScale(0) -
-                          rainScale(
+                          width={weekEndDayWidth - 8}
+                          height={tempScale(
                             series.data.next_24_hours.details
-                              .precipitation_amount
-                          )}
-                        fill="#0000ffcc"
-                      />
+                              .air_temperature_min
+                          ) -
+                            tempScale(
+                              series.data.next_24_hours.details
+                                .air_temperature_max
+                            )}
+                          fill="#ff000033"
+                        />
 
-                      {#if series.data.next_24_hours.details.precipitation_amount != 0}
-                        <!-- Rain as text -->
+                        <!-- Max temp as text -->
                         <text
-                          x={day * dayWidth + dayWidth / 2 + svgLeftPadding}
-                          Y={rainScale(
+                          x={series.xPixelStart +
+                            weekEndDayWidth / 2 +
+                            svgLeftPadding}
+                          Y={tempScale(
                             series.data.next_24_hours.details
-                              .precipitation_amount
+                              .air_temperature_max
                           ) - 5}
-                          class="svgText textOutline"
+                          class="svgTempText textOutline text-sm"
                           text-anchor="middle"
                         >
                           {series.data.next_24_hours.details
-                            .precipitation_amount}
+                            .air_temperature_max}°
                         </text>
+
+                        <!-- Temperature max line -->
+                        <line
+                          x1={series.xPixelStart + 4 + svgLeftPadding}
+                          y1={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_max
+                          )}
+                          x2={series.xPixelStart +
+                            weekEndDayWidth -
+                            4 +
+                            svgLeftPadding}
+                          y2={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_max
+                          )}
+                          stroke="#ff0000"
+                        />
+
+                        <!-- Temperature min line -->
+                        <line
+                          x1={series.xPixelStart + 4 + svgLeftPadding}
+                          y1={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_min
+                          )}
+                          x2={series.xPixelStart +
+                            weekEndDayWidth -
+                            4 +
+                            svgLeftPadding}
+                          y2={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_min
+                          )}
+                          stroke="#ff0000"
+                        />
+
+                        <!-- Rain rectangle -->
+                        <rect
+                          x={series.xPixelStart + 12 + svgLeftPadding}
+                          y={rainScale(
+                            series.data.next_24_hours.details
+                              .precipitation_amount
+                          )}
+                          width={weekEndDayWidth - 24}
+                          height={rainScale(0) -
+                            rainScale(
+                              series.data.next_24_hours.details
+                                .precipitation_amount
+                            )}
+                          fill="#0000ffcc"
+                        />
+
+                        <!-- Rain as text -->
+                        {#if series.data.next_24_hours.details.precipitation_amount != 0}
+                          <text
+                            x={series.xPixelStart +
+                              weekEndDayWidth / 2 +
+                              svgLeftPadding}
+                            Y={rainScale(
+                              series.data.next_24_hours.details
+                                .precipitation_amount
+                            ) - 5}
+                            class="svgRainText text-sm textOutline"
+                            text-anchor="middle"
+                          >
+                            {series.data.next_24_hours.details
+                              .precipitation_amount}
+                          </text>
+                        {/if}
+
+                        <!-- Draw weekday data -->
+                      {:else}
+                        <!-- Temperature rectangle -->
+                        <rect
+                          x={series.xPixelStart + 2 + svgLeftPadding}
+                          y={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_max
+                          )}
+                          width={weekDayWidth - 4}
+                          height={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_min
+                          ) -
+                            tempScale(
+                              series.data.next_24_hours.details
+                                .air_temperature_max
+                            )}
+                          fill="#ff000033"
+                        />
+
+                        <!-- Temperature max line -->
+                        <line
+                          x1={series.xPixelStart + 2 + svgLeftPadding}
+                          y1={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_max
+                          )}
+                          x2={series.xPixelStart +
+                            weekDayWidth -
+                            2 +
+                            svgLeftPadding}
+                          y2={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_max
+                          )}
+                          stroke="#ff0000"
+                        />
+
+                        <!-- Temperature min line -->
+                        <line
+                          x1={series.xPixelStart + 2 + svgLeftPadding}
+                          y1={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_min
+                          )}
+                          x2={series.xPixelStart +
+                            weekDayWidth -
+                            2 +
+                            svgLeftPadding}
+                          y2={tempScale(
+                            series.data.next_24_hours.details
+                              .air_temperature_min
+                          )}
+                          stroke="#ff0000"
+                        />
+
+                        <!-- Rain rectangle -->
+                        <rect
+                          x={series.xPixelStart + 2 + svgLeftPadding}
+                          y={rainScale(
+                            series.data.next_24_hours.details
+                              .precipitation_amount
+                          )}
+                          width={weekDayWidth - 4}
+                          height={rainScale(0) -
+                            rainScale(
+                              series.data.next_24_hours.details
+                                .precipitation_amount
+                            )}
+                          fill="#0000ffcc"
+                        />
                       {/if}
                     {/if}
                   {/each}
                 </svg>
+
+                <button
+                  on:click={() => {
+                    locations.splice(index, 1); // Remove one element at the index
+                    fetchWeatherForAllLocations();
+                    filterWeatherData(); // Call the filter function
+                  }}
+                  class="h-[42px] ml-4 bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+                >
+                  Ta bort {data.location.name.length > 6
+                    ? data.location.name.substring(0, 8) + "..."
+                    : data.location.name}
+                </button>
               </div>
             </div>
           {/each}
@@ -674,7 +862,11 @@
     </div>
   </div>
 
-  <!-- Info -->
+  <!-- Add location -->
+  <div class="max-w-md p-4">
+    <h2 class="text-xl font-bold mb-2">Legg til sted</h2>
+    <PlaceSearch on:addPlace={handleAddPlace} />
+  </div>
 </main>
 
 <style lang="postcss">
@@ -688,9 +880,12 @@
     margin: 0;
   }
 
-  .svgText {
-    font: regular 8px sans-serif;
-    fill: blue;
+  .svgRainText {
+    fill: theme(colors.blue.500);
+  }
+
+  .svgTempText {
+    fill: theme(colors.red.500);
   }
 
   .textOutline {
