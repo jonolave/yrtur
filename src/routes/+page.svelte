@@ -4,7 +4,7 @@
   import Papa from "papaparse"; // for csv parsing
   import { scaleLinear } from "d3-scale";
   import { min, max } from "d3-array";
-  import PlaceSearch from "$lib/components/PlaceSearch.svelte";
+  import PlaceSearch from "../lib/components/PlaceSearch.svelte";
 
   let weatherData = [];
   let weatherDataFiltered = [];
