@@ -62,9 +62,11 @@
 
   const dayWidth = 60;
   const rainBarWidth = 18;
-  const dayHeight = 180;
+  const dayHeight = 140;
+  let scrollDistance = 0; 
 
-  let svgTotalWidth = 100;
+
+  let svgTotalWidth = 100; // value here doesn't really matter, will be updated later 
   // $: console.log("SVG width changed: ", svgTotalWidth);
 
   // Reactive block for weekendsOnly
@@ -78,6 +80,7 @@
       svgTotalWidth = 10;
     }
   }
+
 
   async function loadCSV() {
     const response = await fetch("weather.csv");
@@ -310,7 +313,7 @@
       // Create a linear scale based on the min and max values
       tempScale = scaleLinear()
         .domain([minValue - 2, maxValue + 2])
-        .range([dayHeight/3*2, 10]);
+        .range([(dayHeight / 3) * 2, 10]);
     } else {
       // console.error("No valid temperature data found");
     }
@@ -338,11 +341,11 @@
       if (maxValue > 20) {
         rainScale = scaleLinear()
           .domain([0, maxValue])
-          .range([dayHeight - 5, dayHeight/2-5]);
+          .range([dayHeight - 5, dayHeight / 2 - 5]);
       } else {
         rainScale = scaleLinear()
           .domain([0, 20])
-          .range([dayHeight - 5, dayHeight/2-5]);
+          .range([dayHeight - 5, dayHeight / 2 - 5]);
       }
     } else {
       // console.error("No valid rain data found");
@@ -386,11 +389,24 @@
     loadCSV();
     fetchWeatherForAllLocations();
     filterWeatherData();
+
+    const scrollContainer = document.getElementById('scrollContainer');
+    if (scrollContainer) {
+      // Add the scroll event listener
+      scrollContainer.addEventListener('scroll', () => {
+        scrollDistance = scrollContainer.scrollLeft;
+      });
+    } else {
+      console.error('Scroll container not found');
+    }
+
+
+
   });
 </script>
 
-<!-- svelte-ignore non-top-level-reactive-declaration -->
 <main class="">
+  <!-- Top info area -->
   <div class="mx-3 mt-4">
     <!-- Heading -->
     <h1 class="text-3xl font-bold mb-1">Helge&shy;planlegger'n</h1>
@@ -402,21 +418,28 @@
         on:click={() => exampleLocations("Sør-Norge")}
         class="text-pink-600 underline decoration-dotted"
         role="button"
-      >byer i Sør-Norge</a>,
+      >
+        byer i Sør-Norge
+      </a>
+      ,
       <a
         href="#"
         on:click={() => exampleLocations("skidestinasjoner")}
         class="text-pink-600 underline decoration-dotted"
         role="button"
       >
-        skidestinasjoner i Norge</a>,
+        skidestinasjoner i Norge
+      </a>
+      ,
       <a
         href="#"
         on:click={() => exampleLocations("Norden")}
         class="text-pink-600 underline decoration-dotted"
         role="button"
       >
-        byer i Norden</a>, eller søk opp dine egne favoritter!
+        byer i Norden
+      </a>
+      , eller søk opp dine egne favoritter!
     </p>
 
     <label>
@@ -433,18 +456,24 @@
       />
       Vis kun helger
     </label>
+
+    <p>Showing day number { Math.round(scrollDistance / dayWidth) }</p>
+
+
+
   </div>
 
   <!-- Data for all locations -->
   <div class="relative w-full overflow-hidden my-8">
-    <div class="flex overflow-x-auto min-w-0">
+    <div class="flex overflow-x-auto min-w-0" id="scrollContainer">
       <div class="flex-shrink-0 w-full">
         {#if weatherDataFiltered && weatherDataFiltered.length > 0}
           <!-- For each location -->
           {#each weatherDataFiltered as data, index}
             <!-- x axis days above first location-->
             {#if index === 0}
-              <div class="pl-[80px] pb-4">
+            
+              <div class="pl-[70px] pb-4">
                 <svg width={svgTotalWidth} height="40">
                   <!-- Background rectangle -->
                   <!-- 
@@ -488,41 +517,51 @@
             {/if}
 
             <!-- weather data for each day -->
-            <div class="mb-2  ">
-
+            <div class="mb-2 mb-8" style="height: {dayHeight}px;">
               <!-- Fixed left area per location -->
               <div
-                class="w-[80px] absolute left-0 bg-white flex items-center shadow-[0_0_5px_5px_rgba(255,255,255,1.0)] border-b-2"
+                class="w-[75px] absolute left-0 overflow-hidden flex items-center"
                 style="width: 80px; height: {dayHeight}px;"
               >
-                <!-- Name of location -->
-                <div class="w-[40px] h-full flex justify-center items-center">
-                  <h3 class="transform -rotate-90 origin-center whitespace-nowrap text-xl font-medium ">
-                    {data.location.name}
-                  </h3>
-               </div>
+                <div class="w-[60px] flex justify-center bg-slate-200 items-center h-full ">
+                  <!-- Name of location -->
+                  <div
+                    class="w-[40px] ml-4 bg-white rounded-l-[4px] h-full flex justify-center items-center"
+                  >
+                    <h3
+                      class="transform -rotate-90 origin-center whitespace-nowrap text-xl font-medium"
+                    >
+                      {data.location.name}
+                    </h3>
+                  </div>
 
-                <!-- Y axis -->
-               <div>
-                <svg width="20" height="20">
-                  <circle cx="10" cy="10" r="10" fill="red" />
-                </svg>
-               </div>
+                  <!-- Y axis -->
+                  <div class="w-[20px] bg-white h-full shadow-[0_0_8px_2px_rgba(255,255,255,1.0)]">
+
+                    <svg width="20" height="20">
+                      <!-- <circle cx="10" cy="10" r="10" fill="red" /> -->
+                    </svg>
+                    
+                  </div>
+                </div>
               </div>
 
               <!-- SVG per location-->
-              <div class="pl-[85px]">
-                <svg width={svgTotalWidth} height={dayHeight} class="border-b-2 bg-white">
+              <div class="ml-[70px]">
+                <svg
+                  width={svgTotalWidth}
+                  height={dayHeight}
+                >
                   <!-- Background rectangle full width -->
-                  <!--
                   <rect
                     x="0"
                     y="0"
-                    width={26 * dayWidth}
+                    rx="4"
+                    ry="4"
+                    width={svgTotalWidth}
                     height={dayHeight}
                     fill="white"
                   />
-                  -->
 
                   <!-- 0 degree temp line -->
                   <line
@@ -532,7 +571,6 @@
                     y2={tempScale(0)}
                     stroke="#00000044"
                   />
-             
 
                   <!-- Temperature polygon between min and max polygon -->
                   <!--
@@ -549,18 +587,16 @@
                   <!-- draw day by day -->
                   {#each data.subseasonal.properties.timeseries as series, day (series.time)}
                     {#if series.data.next_24_hours}
-         
-
-                        <!-- Line on the side of sunday -->
-                        {#if series.dayNumber === 0}
-                          <line
-                            x1={day * dayWidth + dayWidth}
-                            y1="0"
-                            x2={day * dayWidth + dayWidth}
-                            y2={dayHeight}
-                            stroke="#00000055"
-                          />
-                        {/if}
+                      <!-- Line on the side of sunday -->
+                      {#if series.dayNumber === 0}
+                        <line
+                          x1={day * dayWidth + dayWidth}
+                          y1="4"
+                          x2={day * dayWidth + dayWidth}
+                          y2={dayHeight-4}
+                          stroke="#00000055"
+                        />
+                      {/if}
 
                       <!-- Temperature rectangle -->
                       <rect
@@ -649,7 +685,7 @@
 
 <style lang="postcss">
   :global(html) {
-    background-color: theme(colors.gray.50);
+    background-color: theme(colors.slate.200);
   }
 
   html,
