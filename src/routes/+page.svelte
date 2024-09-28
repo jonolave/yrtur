@@ -585,7 +585,7 @@
                       {#if series.dayNumber === 0}
                         <line
                           x1={day * dayWidth + dayWidth + svgLeftPadding}
-                          y1=""
+                          y1="0"
                           x2={day * dayWidth + dayWidth + svgLeftPadding}
                           y2={dayHeight}
                           stroke="#00000055"
