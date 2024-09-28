@@ -61,12 +61,12 @@
   let csvData = [];
 
   const dayWidth = 60;
-  const rainBarWidth = 18;
   const dayHeight = 140;
-  let scrollDistance = 0; 
+  const rainBarWidth = 18;
+  const svgLeftPadding = 70;
+  let scrollDistance = 0;
 
-
-  let svgTotalWidth = 100; // value here doesn't really matter, will be updated later 
+  let svgTotalWidth = 100; // value here doesn't really matter, will be updated later
   // $: console.log("SVG width changed: ", svgTotalWidth);
 
   // Reactive block for weekendsOnly
@@ -80,7 +80,6 @@
       svgTotalWidth = 10;
     }
   }
-
 
   async function loadCSV() {
     const response = await fetch("weather.csv");
@@ -390,18 +389,15 @@
     fetchWeatherForAllLocations();
     filterWeatherData();
 
-    const scrollContainer = document.getElementById('scrollContainer');
+    const scrollContainer = document.getElementById("scrollContainer");
     if (scrollContainer) {
       // Add the scroll event listener
-      scrollContainer.addEventListener('scroll', () => {
+      scrollContainer.addEventListener("scroll", () => {
         scrollDistance = scrollContainer.scrollLeft;
       });
     } else {
-      console.error('Scroll container not found');
+      console.error("Scroll container not found");
     }
-
-
-
   });
 </script>
 
@@ -457,10 +453,7 @@
       Vis kun helger
     </label>
 
-    <p>Showing day number { Math.round(scrollDistance / dayWidth) }</p>
-
-
-
+    <p>Showing day number {Math.round(scrollDistance / dayWidth)}</p>
   </div>
 
   <!-- Data for all locations -->
@@ -472,7 +465,6 @@
           {#each weatherDataFiltered as data, index}
             <!-- x axis days above first location-->
             {#if index === 0}
-            
               <div class="pl-[70px] pb-4">
                 <svg width={svgTotalWidth} height="40">
                   <!-- Background rectangle -->
@@ -517,13 +509,15 @@
             {/if}
 
             <!-- weather data for each day -->
-            <div class="mb-2 mb-8" style="height: {dayHeight}px;">
+            <div class="mb-4" style="height: {dayHeight}px;">
               <!-- Fixed left area per location -->
               <div
                 class="w-[75px] absolute left-0 overflow-hidden flex items-center"
                 style="width: 80px; height: {dayHeight}px;"
               >
-                <div class="w-[60px] flex justify-center bg-slate-200 items-center h-full ">
+                <div
+                  class="w-[60px] flex justify-center bg-slate-200 items-center h-full"
+                >
                   <!-- Name of location -->
                   <div
                     class="w-[40px] ml-4 bg-white rounded-l-[4px] h-full flex justify-center items-center"
@@ -536,38 +530,38 @@
                   </div>
 
                   <!-- Y axis -->
-                  <div class="w-[20px] bg-white h-full shadow-[0_0_8px_2px_rgba(255,255,255,1.0)]">
-
+                  <div
+                    class="w-[20px] bg-white h-full shadow-[0_0_8px_2px_rgba(255,255,255,1.0)]"
+                  >
                     <svg width="20" height="20">
                       <!-- <circle cx="10" cy="10" r="10" fill="red" /> -->
                     </svg>
-                    
                   </div>
                 </div>
               </div>
 
               <!-- SVG per location-->
-              <div class="ml-[70px]">
-                <svg
-                  width={svgTotalWidth}
-                  height={dayHeight}
-                >
+              <div
+                class=""
+                style="width: {svgTotalWidth + svgLeftPadding + 32}px;"
+              >
+                <svg width={svgTotalWidth + svgLeftPadding + 16} height={dayHeight}>
                   <!-- Background rectangle full width -->
                   <rect
                     x="0"
                     y="0"
                     rx="4"
                     ry="4"
-                    width={svgTotalWidth}
+                    width={svgTotalWidth + svgLeftPadding + 16}
                     height={dayHeight}
                     fill="white"
                   />
 
                   <!-- 0 degree temp line -->
                   <line
-                    x1="0"
+                    x1="{svgLeftPadding}"
                     y1={tempScale(0)}
-                    x2={svgTotalWidth}
+                    x2={svgTotalWidth + svgLeftPadding}
                     y2={tempScale(0)}
                     stroke="#00000044"
                   />
@@ -590,17 +584,17 @@
                       <!-- Line on the side of sunday -->
                       {#if series.dayNumber === 0}
                         <line
-                          x1={day * dayWidth + dayWidth}
-                          y1="4"
-                          x2={day * dayWidth + dayWidth}
-                          y2={dayHeight-4}
+                          x1={day * dayWidth + dayWidth + svgLeftPadding}
+                          y1=""
+                          x2={day * dayWidth + dayWidth + svgLeftPadding}
+                          y2={dayHeight}
                           stroke="#00000055"
                         />
                       {/if}
 
                       <!-- Temperature rectangle -->
                       <rect
-                        x={day * dayWidth + 4}
+                        x={day * dayWidth + 4 + svgLeftPadding}
                         y={tempScale(
                           series.data.next_24_hours.details.air_temperature_max
                         )}
@@ -616,11 +610,11 @@
                       />
                       <!-- Temperature max line -->
                       <line
-                        x1={day * dayWidth + 4}
+                        x1={day * dayWidth + 4 + svgLeftPadding}
                         y1={tempScale(
                           series.data.next_24_hours.details.air_temperature_max
                         )}
-                        x2={day * dayWidth + dayWidth - 4}
+                        x2={day * dayWidth + dayWidth - 4 + svgLeftPadding}
                         y2={tempScale(
                           series.data.next_24_hours.details.air_temperature_max
                         )}
@@ -628,11 +622,11 @@
                       />
                       <!-- Temperature min line -->
                       <line
-                        x1={day * dayWidth + 4}
+                        x1={day * dayWidth + 4 + svgLeftPadding}
                         y1={tempScale(
                           series.data.next_24_hours.details.air_temperature_min
                         )}
-                        x2={day * dayWidth + dayWidth - 4}
+                        x2={day * dayWidth + dayWidth - 4 + svgLeftPadding}
                         y2={tempScale(
                           series.data.next_24_hours.details.air_temperature_min
                         )}
@@ -641,7 +635,7 @@
 
                       <!-- Rain rectangle -->
                       <rect
-                        x={day * dayWidth + dayWidth / 2 - rainBarWidth / 2}
+                        x={day * dayWidth + dayWidth / 2 - rainBarWidth / 2 + svgLeftPadding}
                         y={rainScale(
                           series.data.next_24_hours.details.precipitation_amount
                         )}
@@ -657,7 +651,7 @@
                       {#if series.data.next_24_hours.details.precipitation_amount != 0}
                         <!-- Rain as text -->
                         <text
-                          x={day * dayWidth + dayWidth / 2}
+                          x={day * dayWidth + dayWidth / 2 + svgLeftPadding}
                           Y={rainScale(
                             series.data.next_24_hours.details
                               .precipitation_amount
