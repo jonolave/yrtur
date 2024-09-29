@@ -16,6 +16,8 @@
     // { name: "Finse", lat: 60.6, lon: 7.5 },
   ];
   let weekendsOnly = false;
+  let maxTemp;
+  let minTemp;
 
   const handleAddPlace = (event) => {
     const newPlace = event.detail.position;
@@ -256,10 +258,8 @@
     weatherDataFiltered = weatherData;
     filterWeatherData();
 
-    console.log(
-      "Filtered weather data for all locations:",
-      weatherDataFiltered
-    );
+    console.log("Filtered weather data for all locations:");
+    console.log(weatherDataFiltered);
 
     updateScale();
   }
@@ -324,6 +324,9 @@
       const minValue = min(allMinTemperatures);
       const maxValue = max(allMaxTemperatures);
 
+      maxTemp = maxValue;
+      minTemp = minValue;
+
       console.log("Min temperature:", minValue);
       console.log("Max temperature:", maxValue);
 
@@ -353,7 +356,7 @@
     if (allMaxRain.length > 0) {
       const maxValue = max(allMaxRain);
 
-      console.log("Max rain:", maxValue);
+      // console.log("Max rain:", maxValue);
 
       if (maxValue > 20) {
         rainScale = scaleLinear()
@@ -390,47 +393,61 @@
   onMount(() => {
     fetchWeatherForAllLocations();
     filterWeatherData();
-    
   });
 </script>
 
 <main class="">
   <!-- Top info area -->
-  <div class="mx-5 my-8">
+  <div class="px-5 py-8 mb-4 bg-slate-700">
     <!-- Heading -->
-    <h1 class="text-3xl mb-1 merriweather-font">Helge&shy;været</h1>
-    <h2 class="text-xl mb-5">Sammenlign langtidsvarsel for steder i Norden</h2>
+    <h1 class="text-3xl text-orange-400 mb-1 merriweather-font">
+      Helge&shy;været
+    </h1>
+    <h2 class="text-xl text-white mb-5">
+      Sammenlign langtidsvarsel for steder i Norden
+    </h2>
 
-    <p class="mb-3">
-      Sammenlig <a
-        href="#"
-        on:click={() => exampleLocations("Sør-Norge")}
-        class="text-pink-600 underline decoration-dotted"
-        role="button"
-      >
-        byer i Sør-Norge
-      </a>
-      ,
-      <a
-        href="#"
-        on:click={() => exampleLocations("skidestinasjoner")}
-        class="text-pink-600 underline decoration-dotted"
-        role="button"
-      >
-        skidestinasjoner i Norge
-      </a>
-      ,
-      <a
-        href="#"
-        on:click={() => exampleLocations("Norden")}
-        class="text-pink-600 underline decoration-dotted"
-        role="button"
-      >
-        byer i Norden
-      </a>
-      , eller søk opp dine egne favoritter!
+    <p class="text-white">Du kan for eksempel sjekke:</p>
+    <ul class="pl-1">
+      <li>
+        👉🏻
+        <a
+          href="#"
+          on:click={() => exampleLocations("Sør-Norge")}
+          class="text-orange-400 underline decoration-dotted"
+          role="button"
+        >
+          Byer i Sør-Norge
+        </a>
+      </li>
+      <li>
+        👉🏻 <a
+          href="#"
+          on:click={() => exampleLocations("skidestinasjoner")}
+          class="text-orange-400 underline decoration-dotted"
+          role="button"
+        >
+          Skidestinasjoner i Norge
+        </a>
+      </li>
+      <li>
+        👉🏻 <a
+          href="#"
+          on:click={() => exampleLocations("Norden")}
+          class="text-orange-400 underline decoration-dotted"
+          role="button"
+        >
+          Byer i Norden
+        </a>
+      </li>
+    </ul>
+
+    <p class="my-2 text-white">
+      ...eller søk opp dine egne favoritter nederst på siden!
     </p>
+  </div>
 
+  <div class="pl-4 mb-8">
     <label>
       <input
         type="checkbox"
@@ -448,8 +465,6 @@
       />
       Vis kun helger
     </label>
-
-    <!-- <p>Showing day number {Math.round(scrollDistance / dayWidth)}</p> -->
   </div>
 
   <!-- Data for all locations -->
@@ -457,11 +472,9 @@
     <div class="flex overflow-x-auto min-w-0" id="scrollContainer">
       <div class="flex-shrink-0 w-full">
         {#if weatherDataFiltered && weatherDataFiltered.length > 0}
-          <!-- Regular non-sticky x-axis -->
+          <!-- X-axis with days -->
           <div
-            id="x-axis"
-            bind:this={xAxis}
-            class="bg-white pl-[62px] mb-2 h-[48px] ml-[8px] rounded-[4px]"
+            class="bg-white pl-[42px] mb-2 h-[48px] ml-4 rounded-[4px]"
             style="width: {svgTotalWidth + settings.svgLeftPadding + 8}px"
           >
             <svg width={svgTotalWidth} height="40">
@@ -516,32 +529,90 @@
               <!-- Fixed left area per location -->
               <div
                 class="w-[75px] absolute left-0 overflow-hidden flex items-center"
-                style="width: 80px; height: {settings.dayHeight}px;"
+                style="height: {settings.dayHeight}px;"
               >
                 <div
-                  class="w-[60px] flex justify-center bg-slate-200 items-center h-full"
+                  class="w-[50px] flex justify-center bg-slate-200 items-center h-full"
                 >
                   <!-- Name of location -->
                   <div
-                    class="w-[40px] ml-4 bg-white rounded-l-[4px] h-full flex justify-center items-center"
+                    class="w-[30px] ml-8 bg-white rounded-l-[4px] h-full flex justify-center items-center"
                   >
                     <h3
                       class="transform -rotate-90 origin-center whitespace-nowrap text-l font-medium"
                     >
-
-                    {data.location.name.length > 9
-                      ? data.location.name.substring(0, 8) + ".."
-                      : data.location.name}
-
+                      {data.location.name.length > 9
+                        ? data.location.name.substring(0, 7) + ".."
+                        : data.location.name}
                     </h3>
                   </div>
 
                   <!-- Y axis -->
                   <div
-                    class="w-[20px] bg-white h-full shadow-[0_0_8px_2px_rgba(255,255,255,1.0)]"
+                    class="w-[20px] bg-white h-full shadow-[0_0_5px_2px_rgba(255,255,255,1.0)]"
                   >
-                    <svg width="20" height="20">
-                      <!-- <circle cx="10" cy="10" r="10" fill="red" /> -->
+                    <svg width="25" height={settings.dayHeight}>
+                      {#if minTemp < 0 && maxTemp > 0}
+                        <!-- 0 degrees -->
+                        <line
+                          x1="18"
+                          y1={tempScale(0)}
+                          x2="25"
+                          y2={tempScale(0)}
+                          stroke="#222"
+                        />
+
+                        {#if maxTemp > 2 && minTemp < -2}
+                          <text
+                            x="18"
+                            fill="#222"
+                            Y={tempScale(0) + 2}
+                            font-size="12px"
+                            text-anchor="end"
+                            font-weight="normal"
+                          >
+                            0°
+                          </text>
+                        {/if}
+                      {/if}
+
+                      <!-- Max tem -->
+                      <line
+                        x1="18"
+                        y1={tempScale(maxTemp)}
+                        x2="25"
+                        y2={tempScale(maxTemp)}
+                        stroke="#222"
+                      />
+                      <text
+                        x="18"
+                        fill="#222"
+                        Y={tempScale(maxTemp) + 2}
+                        font-size="12px"
+                        text-anchor="end"
+                        font-weight="normal"
+                      >
+                        {Math.round(maxTemp)}°
+                      </text>
+
+                      <!-- Min tem -->
+                      <line
+                        x1="18"
+                        y1={tempScale(minTemp)}
+                        x2="25"
+                        y2={tempScale(minTemp)}
+                        stroke="#222"
+                      />
+                      <text
+                        x="18"
+                        fill="#222"
+                        Y={tempScale(minTemp) + 2}
+                        font-size="12px"
+                        text-anchor="end"
+                        font-weight="normal"
+                      >
+                        {Math.round(minTemp)}°
+                      </text>
                     </svg>
                   </div>
                 </div>
@@ -570,13 +641,15 @@
                   />
 
                   <!-- 0 degree temp line -->
-                  <line
-                    x1={settings.svgLeftPadding}
-                    y1={tempScale(0)}
-                    x2={svgTotalWidth + settings.svgLeftPadding}
-                    y2={tempScale(0)}
-                    stroke="#00000044"
-                  />
+                  {#if minTemp < 0 && maxTemp > 0}
+                    <line
+                      x1={settings.svgLeftPadding}
+                      y1={tempScale(0)}
+                      x2={svgTotalWidth + settings.svgLeftPadding}
+                      y2={tempScale(0)}
+                      stroke="#888"
+                    />
+                  {/if}
 
                   <!-- Temperature polygon between min and max polygon -->
                   <!--
@@ -799,7 +872,6 @@
               </div>
             </div>
           {/each}
-
         {/if}
       </div>
     </div>
@@ -807,7 +879,7 @@
 
   <!-- Add location -->
   <div class="max-w-md p-4">
-    <h2 class="text-xl merriweather-font  mb-2">Legg til sted</h2>
+    <h2 class="text-xl merriweather-font mb-2">Legg til sted</h2>
     <PlaceSearch on:addPlace={handleAddPlace} />
   </div>
 </main>
