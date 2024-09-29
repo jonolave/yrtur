@@ -400,21 +400,21 @@
   <!-- Top info area -->
   <div class="px-5 py-8 mb-4 bg-slate-700">
     <!-- Heading -->
-    <h1 class="text-3xl text-orange-400 mb-1 merriweather-font">
+    <h1 class="text-3xl text-yellow-400 mb-1 merriweather-font">
       Helge&shy;været
     </h1>
     <h2 class="text-xl text-white mb-5">
       Sammenlign langtidsvarsel for steder i Norden
     </h2>
 
-    <p class="text-white">Du kan for eksempel sjekke:</p>
+    <p class="text-white">Du kan for eksempel sammenligne:</p>
     <ul class="pl-1">
       <li>
         👉🏻
         <a
           href="#"
           on:click={() => exampleLocations("Sør-Norge")}
-          class="text-orange-400 underline decoration-dotted"
+          class="text-yellow-400 underline decoration-dotted"
           role="button"
         >
           Byer i Sør-Norge
@@ -424,7 +424,7 @@
         👉🏻 <a
           href="#"
           on:click={() => exampleLocations("skidestinasjoner")}
-          class="text-orange-400 underline decoration-dotted"
+          class="text-yellow-400 underline decoration-dotted"
           role="button"
         >
           Skidestinasjoner i Norge
@@ -434,7 +434,7 @@
         👉🏻 <a
           href="#"
           on:click={() => exampleLocations("Norden")}
-          class="text-orange-400 underline decoration-dotted"
+          class="text-yellow-400 underline decoration-dotted"
           role="button"
         >
           Byer i Norden
@@ -474,9 +474,22 @@
         {#if weatherDataFiltered && weatherDataFiltered.length > 0}
           <!-- X-axis with days -->
           <div
-            class="bg-white pl-[42px] mb-2 h-[48px] ml-4 rounded-[4px]"
-            style="width: {svgTotalWidth + settings.svgLeftPadding + 8}px"
+            class="bg-white pl-[52px] mb-2 h-[48px] ml-4 rounded-[4px]"
+            style="width: {svgTotalWidth + settings.svgLeftPadding}px"
           >
+            <!-- Fixed left area per location -->
+            <div class="w-[75px] absolute left-0 h-[48] overflow-hidden">
+              <div class="w-[50px] bg-slate-200 h-[48]">
+                <div class="w-[40px] ml-4 bg-white flex rounded-l-[4px] h-[48]">
+                  <svg width="30" height="48"></svg>
+                  <div
+                    class="pl-4 w-[10px] h-full shadow-[0_0_5px_2px_rgba(255,255,255,1.0)]"
+                  >
+                    <svg width="10" height="48" class="bg-white"></svg>
+                  </div>
+                </div>
+              </div>
+            </div>
             <svg width={svgTotalWidth} height="40">
               <!-- For each day -->
               {#if weatherDataFiltered[0]?.subseasonal?.properties?.timeseries}
