@@ -171,3 +171,25 @@
     </div>
   {/if}
 {/each}
+
+
+
+function generateTemperaturePolygon(timeseries) {
+  const dayWidth = 60; // Assuming this is the width per day
+  let points = [];
+
+  // 1. Iterate forward through the timeseries for max temperatures
+  timeseries.forEach((series, day) => {
+    const maxTemp = series.data.next_24_hours.details.air_temperature_max;
+    points.push(`${day * dayWidth + dayWidth / 2},${tempScale(maxTemp)}`);
+  });
+
+  // 2. Iterate backward through the timeseries for min temperatures
+  for (let day = timeseries.length - 1; day >= 0; day--) {
+    const minTemp =
+      timeseries[day].data.next_24_hours.details.air_temperature_min;
+    points.push(`${day * dayWidth + dayWidth / 2},${tempScale(minTemp)}`);
+  }
+
+  return points.join(" ");
+}
