@@ -75,7 +75,7 @@
   const settings = {
     weekDayWidth: 16,
     weekEndDayWidth: 60,
-    dayHeight: 140,
+    dayHeight: 100,
     svgLeftPadding: 70,
   };
 
@@ -286,9 +286,9 @@
 
   function updateScale() {
     const pixelsAboveTemp = 24;
-    const tempShareOfHeight = 0.7;
+    const tempShareOfHeight = 0.8;
     const pixelsBelowRain = 6;
-    const rainShareOfHeight = 0.5;
+    const rainShareOfHeight = 0.7;
 
     // Flatten the nested structure to extract the max temperatures, safely checking if the data exists
     const allMaxTemperatures = weatherDataFiltered.flatMap((location) => {
@@ -383,26 +383,14 @@
     updateScale();
   }
 
+  let showStickyAxis = false;
+  let scrollContainer; // Scroll container reference
+  let xAxis; // Reference to the original x-axis
+
   onMount(() => {
     fetchWeatherForAllLocations();
     filterWeatherData();
-
-    // const scrollContainer = document.getElementById("scrollContainer");
-    // const stickyAxis = document.getElementById("sticky-axis");
-
-    // if (scrollContainer && stickyAxis) {
-    //   // Add the scroll event listener
-    //   scrollContainer.addEventListener("scroll", () => {
-    //     // move x axis
-    //     stickyAxis.scrollLeft = scrollContainer.scrollLeft;
-
-    //     // Update variable
-    //     scrollDistance = scrollContainer.scrollLeft;
-    //   });
-    // } else {
-    //   console.error("Scroll container or axis not found");
-    // }
-
+    
   });
 </script>
 
@@ -464,76 +452,17 @@
     <!-- <p>Showing day number {Math.round(scrollDistance / dayWidth)}</p> -->
   </div>
 
-  <!-- sticky x-axis -->
-  <!--
-  <div
-    id="sticky-axis"
-    class="sticky top-0 pb-4 z-20 overflow-x-auto min-w-0 w-full pointer-events-none"
-  >
-    <div
-      class="bg-white pl-[70px]"
-      style="width: {svgTotalWidth + settings.svgLeftPadding + 16 + 240}px"
-    >
-      {#if weatherDataFiltered && weatherDataFiltered.length > 0}
-        <svg width={svgTotalWidth} height="40">
-         
-          {#if weatherDataFiltered[0]?.subseasonal?.properties?.timeseries}
-            {#each weatherDataFiltered[0].subseasonal.properties.timeseries as series, day (series.time)}
-              {#if series.data.next_24_hours}
-                {#if series.dayNumber === 6 || series.dayNumber === 0}
-                  
-                  <text
-                    x={series.xPixelStart + settings.weekEndDayWidth / 2}
-                    Y="20"
-                    font-size="16px"
-                    text-anchor="middle"
-                    font-weight={series.dayNumber === 6 ||
-                    series.dayNumber === 0
-                      ? "bold"
-                      : "normal"}
-                  >
-                    {formatDate(series.time, "day")}
-                  </text>
-
-                  <text
-                    x={series.xPixelStart + settings.weekEndDayWidth / 2}
-                    Y="40"
-                    font-size="14px"
-                    text-anchor="middle"
-                  >
-                    {formatDate(series.time, "date")}
-                  </text>
-                {:else if series.dayNumber === 3}
-                  <text
-                    x={series.xPixelStart + settings.weekDayWidth / 2}
-                    Y="20"
-                    font-size="16px"
-                    text-anchor="middle"
-                    font-weight="normal"
-                  >
-                    man - fre
-                  </text>
-                {/if}
-              {/if}
-            {/each}
-          {/if}
-        </svg>
-      {/if}
-    </div>
-  </div>
--->
-
   <!-- Data for all locations -->
   <div class="relative w-full overflow-hidden mt-2 mb-2">
     <div class="flex overflow-x-auto min-w-0" id="scrollContainer">
       <div class="flex-shrink-0 w-full">
         {#if weatherDataFiltered && weatherDataFiltered.length > 0}
-          <!-- sticky x-axis -->
+          <!-- Regular non-sticky x-axis -->
           <div
+            id="x-axis"
+            bind:this={xAxis}
             class="bg-white pl-[62px] mb-2 h-[48px] ml-[8px] rounded-[4px]"
-            style="width: {svgTotalWidth +
-              settings.svgLeftPadding +
-              8}px"
+            style="width: {svgTotalWidth + settings.svgLeftPadding + 8}px"
           >
             <svg width={svgTotalWidth} height="40">
               <!-- For each day -->
@@ -580,7 +509,7 @@
             </svg>
           </div>
 
-          <!-- For each location -->
+          <!-- Weather for each location -->
           {#each weatherDataFiltered as data, index}
             <!-- weather data for each day -->
             <div class="mb-4" style="height: {settings.dayHeight}px;">
@@ -597,9 +526,13 @@
                     class="w-[40px] ml-4 bg-white rounded-l-[4px] h-full flex justify-center items-center"
                   >
                     <h3
-                      class="transform -rotate-90 origin-center whitespace-nowrap text-xl font-medium"
+                      class="transform -rotate-90 origin-center whitespace-nowrap text-l font-medium"
                     >
-                      {data.location.name}
+
+                    {data.location.name.length > 9
+                      ? data.location.name.substring(0, 8) + ".."
+                      : data.location.name}
+
                     </h3>
                   </div>
 
@@ -785,7 +718,7 @@
                             series.data.next_24_hours.details
                               .air_temperature_max
                           )}
-                          width={settings.weekDayWidth }
+                          width={settings.weekDayWidth}
                           height={tempScale(
                             series.data.next_24_hours.details
                               .air_temperature_min
@@ -859,13 +792,14 @@
                   }}
                   class="h-[42px] ml-4 bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
                 >
-                  Ta bort {data.location.name.length > 6
-                    ? data.location.name.substring(0, 8) + "..."
+                  Ta bort {data.location.name.length > 9
+                    ? data.location.name.substring(0, 8) + ".."
                     : data.location.name}
                 </button>
               </div>
             </div>
           {/each}
+
         {/if}
       </div>
     </div>
@@ -873,7 +807,7 @@
 
   <!-- Add location -->
   <div class="max-w-md p-4">
-    <h2 class="text-xl font-bold mb-2">Legg til sted</h2>
+    <h2 class="text-xl merriweather-font  mb-2">Legg til sted</h2>
     <PlaceSearch on:addPlace={handleAddPlace} />
   </div>
 </main>

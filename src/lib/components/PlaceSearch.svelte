@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
+  import { onMount, tick } from "svelte";
   let place = ""; // Brukerens søkeinput
   let submittedPlace = ""; // Stedet som er sendt inn
   let position = [];
@@ -36,51 +37,59 @@
       });
   }
 
+
   // Funksjon som sender sted til hovedkomponenten
   const addPlace = () => {
     if (place.trim() !== "") {
-      dispatch('addPlace', { position });
+      dispatch("addPlace", { position });
+      placeSearchInput.value = "";
+      submittedPlace = "";
     }
   };
+
+  onMount(() => { 
+    const placeSearchInput = document.getElementById("placeSearchInput");
+
+  });
+ 
 </script>
 
-<!-- Søkefelt og søkeknapp -->
-<div class="search-container">
-  <input
-    type="text"
-    placeholder="Skriv inn et sted..."
-    bind:value={place}
-    on:keydown={handleKeyDown}
-    class="border p-2 rounded"
-  />
+<div class="h-[400px] flex flex-col gap-4">
+  <!-- Søkefelt og søkeknapp -->
+  <div class="flex gap-2">
+    <input
+    id="placeSearchInput"
+      type="text"
+      placeholder="Skriv inn et sted..."
+      bind:value={place}
+      on:keydown={handleKeyDown}
+      class="border p-2 rounded flex-1"
+    />
 
-  <!-- Søkeknapp -->
-  <button
-    on:click={handleSearch}
-    class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-4 rounded"
-  >
-    Søk
-  </button>
+    <!-- Søkeknapp -->
+    <button
+      on:click={handleSearch}
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-4 rounded"
+    >
+      Søk
+    </button>
+  </div>
+
+  <!-- Resultat -->
+  {#if submittedPlace}
+    <div>
+      <h3 class="text-l mb-2">Treff:</h3>
+      <div
+        class="bg-white rounded-[4px] shadow-sm hover:shadow-lg flex gap-4 p-4 items-center"
+      >
+        <p class="flex-1 font-bold">{position.display_name}</p>
+        <button
+          on:click={addPlace}
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Legg til
+        </button>
+      </div>
+    </div>
+  {/if}
 </div>
-
-<!-- Viser det innsendte stedet -->
-{#if submittedPlace}
-  <p>Du har søkt på: {submittedPlace}</p>
-  <p>Treff: {position.display_name}</p>
-  <button on:click={addPlace} 
-    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-  >
-    Legg til
-  </button>
-{/if}
-
-<style>
-  .search-container {
-    display: flex;
-    gap: 10px;
-  }
-
-  input {
-    flex: 1;
-  }
-</style>
