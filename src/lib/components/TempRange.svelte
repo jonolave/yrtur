@@ -10,32 +10,18 @@
   let colorWarm = "#E71804"
   let colorWarmAlpha = "#E7180444"
   
+  $: dayWidth = daytype === "weekday" ? settings.weekDayWidth : settings.weekEndDayWidth;
 
-  let dayWidth;
+  $: maxTemp = series.data.next_24_hours.details.air_temperature_max;
+  $: minTemp = series.data.next_24_hours.details.air_temperature_min;
 
-  if (daytype === "weekday") {
-    dayWidth = settings.weekDayWidth;
-  } else if (daytype === "weekend") {
-    dayWidth = settings.weekEndDayWidth;
-  }
+ // Determine the temperature range reactively
+ $: tempRange = maxTemp > 0 
+    ? (minTemp > 0 ? "positive" : "cross") 
+    : (minTemp > 0 ? "cross" : "negative");
 
-  let maxTemp = series.data.next_24_hours.details.air_temperature_max;
-  let minTemp = series.data.next_24_hours.details.air_temperature_min;
-  let tempRange;
+  // console.log("Range: ", minTemp, "-", maxTemp, ": ", tempRange);
 
-  if (maxTemp > 0) {
-    if (minTemp > 0) {
-      tempRange = "positive";
-    } else {
-      tempRange = "cross";
-    }
-  } else {
-    if (minTemp > 0) {
-      tempRange = "cross";
-    } else {
-      tempRange = "negative";
-    }
-  }
 </script>
 
 <!-- Positive or negative temperature -->

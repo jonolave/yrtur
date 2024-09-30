@@ -87,6 +87,7 @@
 
     fetchWeatherForAllLocations();
     filterWeatherData();
+    updateScale();
   }
 
   const settings = {
