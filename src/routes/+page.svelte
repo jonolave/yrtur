@@ -4,15 +4,20 @@
   import { scaleLinear } from "d3-scale";
   import { min, max } from "d3-array";
   import PlaceSearch from "../lib/components/PlaceSearch.svelte";
+  import ForecastViz from "../lib/components/ForecastViz.svelte";
+  import Xaxis from "../lib/components/Xaxis.svelte";
 
   let weatherData = [];
   let weatherDataFiltered = [];
   let locations = [
     { name: "Oslo", lat: 59.92, lon: 10.75 },
-    { name: "Eikern", lat: 59.62, lon: 10.0 },
-    { name: "Filefjell", lat: 61.17, lon: 8.2 },
+    { name: "Bergen", lat: 60.39, lon: 5.32 },
+    { name: "Trondheim", lat: 63.43, lon: 10.39 },
+    { name: "Tromsø", lat: 69.65, lon: 18.96 },
+    // { name: "Eikern", lat: 59.62, lon: 10.0 },
+    // { name: "Filefjell", lat: 61.17, lon: 8.2 },
     // { name: "Leikanger", lat: 61.18, lon: 6.8 },
-    { name: "Hestenesøyra", lat: 61.84, lon: 6.0 },
+    // { name: "Hestenesøyra", lat: 61.84, lon: 6.0 },
     // { name: "Finse", lat: 60.6, lon: 7.5 },
   ];
   let weekendsOnly = false;
@@ -46,13 +51,23 @@
         ];
         console.log("Loading Sør-Norge..");
         break;
+      case "Nord-Norge":
+        locations = [
+          { name: "Tromsø", lat: 69.65, lon: 18.96 },
+          { name: "Bodø", lat: 67.28, lon: 14.41 },
+          { name: "Harstad", lat: 68.8, lon: 16.54 },
+          { name: "Narvik", lat: 68.44, lon: 17.43 },
+          { name: "Alta", lat: 69.97, lon: 23.27 },
+        ];
+        console.log("Loading Nord-Norge..");
+        break;
       case "skidestinasjoner":
         locations = [
           { name: "Trysil", lat: 61.31, lon: 12.26 },
           { name: "Hemsedal", lat: 60.87, lon: 8.55 },
           { name: "Hafjell", lat: 61.24, lon: 10.44 },
           { name: "Geilo", lat: 60.53, lon: 8.2 },
-          { name: "Kvitfjell", lat: 61.45, lon: 10.14 },
+          { name: "Kvitfjell", lat: 61.47, lon: 10.14 },
         ];
         console.log("Loading skidestinasjoner..");
         break;
@@ -398,7 +413,7 @@
 
 <main class="">
   <!-- Top info area -->
-  <div class="px-5 py-8 mb-4 bg-slate-700">
+  <div class="px-5 pt-8 pb-4 mb-3 bg-slate-700">
     <!-- Heading -->
     <h1 class="text-3xl text-yellow-400 mb-1 merriweather-font">
       Helge&shy;været
@@ -418,6 +433,17 @@
           role="button"
         >
           Byer i Sør-Norge
+        </a>
+      </li>
+      <li>
+        👉🏻
+        <a
+          href="#"
+          on:click={() => exampleLocations("Nord-Norge")}
+          class="text-yellow-400 underline decoration-dotted"
+          role="button"
+        >
+          Byer i Nord-Norge
         </a>
       </li>
       <li>
@@ -447,7 +473,7 @@
     </p>
   </div>
 
-  <div class="pl-4 mb-8">
+  <div class="pl-4 mb-4">
     <label>
       <input
         type="checkbox"
@@ -473,67 +499,12 @@
       <div class="flex-shrink-0 w-full">
         {#if weatherDataFiltered && weatherDataFiltered.length > 0}
           <!-- X-axis with days -->
-          <div
-            class="bg-white pl-[52px] mb-2 h-[48px] ml-4 rounded-[4px]"
-            style="width: {svgTotalWidth + settings.svgLeftPadding}px"
-          >
-            <!-- Fixed left area per location -->
-            <div class="w-[75px] absolute left-0 h-[48] overflow-hidden">
-              <div class="w-[50px] bg-slate-200 h-[48]">
-                <div class="w-[40px] ml-4 bg-white flex rounded-l-[4px] h-[48]">
-                  <svg width="30" height="48"></svg>
-                  <div
-                    class="pl-4 w-[10px] h-full shadow-[0_0_5px_2px_rgba(255,255,255,1.0)]"
-                  >
-                    <svg width="10" height="48" class="bg-white"></svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <svg width={svgTotalWidth} height="40">
-              <!-- For each day -->
-              {#if weatherDataFiltered[0]?.subseasonal?.properties?.timeseries}
-                {#each weatherDataFiltered[0].subseasonal.properties.timeseries as series, day (series.time)}
-                  {#if series.data.next_24_hours}
-                    {#if series.dayNumber === 6 || series.dayNumber === 0}
-                      <!-- Day in text -->
-                      <text
-                        x={series.xPixelStart + settings.weekEndDayWidth / 2}
-                        Y="20"
-                        font-size="16px"
-                        text-anchor="middle"
-                        font-weight={series.dayNumber === 6 ||
-                        series.dayNumber === 0
-                          ? "bold"
-                          : "normal"}
-                      >
-                        {formatDate(series.time, "day")}
-                      </text>
-
-                      <text
-                        x={series.xPixelStart + settings.weekEndDayWidth / 2}
-                        Y="40"
-                        font-size="14px"
-                        text-anchor="middle"
-                      >
-                        {formatDate(series.time, "date")}
-                      </text>
-                    {:else if series.dayNumber === 3}
-                      <text
-                        x={series.xPixelStart + settings.weekDayWidth / 2}
-                        Y="20"
-                        font-size="16px"
-                        text-anchor="middle"
-                        font-weight="normal"
-                      >
-                        man - fre
-                      </text>
-                    {/if}
-                  {/if}
-                {/each}
-              {/if}
-            </svg>
-          </div>
+          <Xaxis
+          {svgTotalWidth}
+          {settings}
+          {weatherDataFiltered}
+          {formatDate}
+        />
 
           <!-- Weather for each location -->
           {#each weatherDataFiltered as data, index}
@@ -638,237 +609,15 @@
                   settings.svgLeftPadding +
                   240}px;"
               >
-                <svg
-                  width={svgTotalWidth + settings.svgLeftPadding + 16}
-                  height={settings.dayHeight}
-                >
-                  <!-- Background rectangle full width -->
-                  <rect
-                    x="0"
-                    y="0"
-                    rx="4"
-                    ry="4"
-                    width={svgTotalWidth + settings.svgLeftPadding + 16}
-                    height={settings.dayHeight}
-                    fill="white"
-                  />
-
-                  <!-- 0 degree temp line -->
-                  {#if minTemp < 0 && maxTemp > 0}
-                    <line
-                      x1={settings.svgLeftPadding}
-                      y1={tempScale(0)}
-                      x2={svgTotalWidth + settings.svgLeftPadding}
-                      y2={tempScale(0)}
-                      stroke="#888"
-                    />
-                  {/if}
-
-                  <!-- Temperature polygon between min and max polygon -->
-                  <!--
-                  <polygon
-                    points="{generateTemperaturePolygon(data.subseasonal.properties.timeseries)}"
-                    fill="#ff000044"        
-                    stroke="#ff0000"         
-                    stroke-width="2"         
-                    stroke-opacity="0.6"    
-                    opacity="0.8"     
-                  />
-                   -->
-
-                  <!-- draw day by day -->
-                  {#each data.subseasonal.properties.timeseries as series, day (series.time)}
-                    {#if series.data.next_24_hours}
-                      <!-- Draw weekend data -->
-                      {#if series.dayNumber === 6 || series.dayNumber === 0}
-                        <!-- Temperature rectangle -->
-                        <rect
-                          x={series.xPixelStart + settings.svgLeftPadding}
-                          y={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          )}
-                          width={settings.weekEndDayWidth}
-                          height={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_min
-                          ) -
-                            tempScale(
-                              series.data.next_24_hours.details
-                                .air_temperature_max
-                            )}
-                          fill="#ff000033"
-                        />
-
-                        <!-- Max temp as text -->
-                        <text
-                          x={series.xPixelStart +
-                            settings.weekEndDayWidth / 2 +
-                            settings.svgLeftPadding}
-                          Y={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          ) - 5}
-                          class="svgTempText textOutline text-sm"
-                          text-anchor="middle"
-                        >
-                          {Math.round(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          )}°
-                        </text>
-
-                        <!-- Temperature max line -->
-                        <line
-                          x1={series.xPixelStart + settings.svgLeftPadding}
-                          y1={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          )}
-                          x2={series.xPixelStart +
-                            settings.weekEndDayWidth +
-                            settings.svgLeftPadding}
-                          y2={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          )}
-                          stroke="#ff0000"
-                        />
-
-                        <!-- Temperature min line -->
-                        <line
-                          x1={series.xPixelStart + settings.svgLeftPadding}
-                          y1={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_min
-                          )}
-                          x2={series.xPixelStart +
-                            settings.weekEndDayWidth +
-                            settings.svgLeftPadding}
-                          y2={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_min
-                          )}
-                          stroke="#ff0000"
-                        />
-
-                        <!-- Rain rectangle -->
-                        <rect
-                          x={series.xPixelStart + settings.svgLeftPadding}
-                          y={rainScale(
-                            series.data.next_24_hours.details
-                              .precipitation_amount
-                          )}
-                          width={settings.weekEndDayWidth}
-                          height={rainScale(0) -
-                            rainScale(
-                              series.data.next_24_hours.details
-                                .precipitation_amount
-                            )}
-                          fill="#0000ffcc"
-                        />
-
-                        <!-- Rain as text -->
-                        {#if series.data.next_24_hours.details.precipitation_amount != 0}
-                          <text
-                            x={series.xPixelStart +
-                              settings.weekEndDayWidth / 2 +
-                              settings.svgLeftPadding}
-                            Y={rainScale(
-                              series.data.next_24_hours.details
-                                .precipitation_amount
-                            ) - 5}
-                            class="svgRainText text-sm textOutline"
-                            text-anchor="middle"
-                          >
-                            {series.data.next_24_hours.details
-                              .precipitation_amount}
-                          </text>
-                        {/if}
-
-                        <!-- Draw weekday data -->
-                      {:else}
-                        <!-- Background -->
-                        <rect
-                          x={series.xPixelStart + settings.svgLeftPadding}
-                          y="6"
-                          width={settings.weekDayWidth}
-                          height={settings.dayHeight - 12}
-                          fill="#33415511"
-                        />
-
-                        <!-- Temperature rectangle -->
-                        <rect
-                          x={series.xPixelStart + settings.svgLeftPadding}
-                          y={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          )}
-                          width={settings.weekDayWidth}
-                          height={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_min
-                          ) -
-                            tempScale(
-                              series.data.next_24_hours.details
-                                .air_temperature_max
-                            )}
-                          fill="#ff000033"
-                        />
-
-                        <!-- Temperature max line -->
-                        <line
-                          x1={series.xPixelStart + settings.svgLeftPadding}
-                          y1={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          )}
-                          x2={series.xPixelStart +
-                            settings.weekDayWidth +
-                            settings.svgLeftPadding}
-                          y2={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_max
-                          )}
-                          stroke="#ff0000"
-                        />
-
-                        <!-- Temperature min line -->
-                        <line
-                          x1={series.xPixelStart + settings.svgLeftPadding}
-                          y1={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_min
-                          )}
-                          x2={series.xPixelStart +
-                            settings.weekDayWidth +
-                            settings.svgLeftPadding}
-                          y2={tempScale(
-                            series.data.next_24_hours.details
-                              .air_temperature_min
-                          )}
-                          stroke="#ff0000"
-                        />
-
-                        <!-- Rain rectangle -->
-                        <rect
-                          x={series.xPixelStart + settings.svgLeftPadding}
-                          y={rainScale(
-                            series.data.next_24_hours.details
-                              .precipitation_amount
-                          )}
-                          width={settings.weekDayWidth}
-                          height={rainScale(0) -
-                            rainScale(
-                              series.data.next_24_hours.details
-                                .precipitation_amount
-                            )}
-                          fill="#0000ffcc"
-                        />
-                      {/if}
-                    {/if}
-                  {/each}
-                </svg>
+                <ForecastViz
+                  {svgTotalWidth}
+                  {settings}
+                  {minTemp}
+                  {maxTemp}
+                  {tempScale}
+                  {rainScale}
+                  {data}
+                />
 
                 <button
                   on:click={() => {
@@ -923,15 +672,11 @@
     fill: theme(colors.blue.500);
   }
 
-  .svgTempText {
-    fill: theme(colors.red.500);
-  }
-
   .textOutline {
     text-shadow:
-      1px 1px 0 theme(colors.gray.100),
-      -1px -1px 0 theme(colors.gray.100),
-      1px -1px 0 theme(colors.gray.100),
-      -1px 1px 0 theme(colors.gray.100);
+      1px 1px 0 #fff,
+      -1px -1px 0 #fff,
+      1px -1px 0 #fff,
+      -1px 1px 0 #fff;
   }
 </style>
