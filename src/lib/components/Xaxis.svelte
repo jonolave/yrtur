@@ -53,7 +53,7 @@ style="width: {svgTotalWidth + settings.svgLeftPadding}px"
           </text>
         {:else if series.dayNumber === 1}
           <text
-            x={series.xPixelStart + 2}
+            x={series.xPixelStart + 3}
             Y="20"
             font-size="14px"
             text-anchor="start"
@@ -75,7 +75,7 @@ style="width: {svgTotalWidth + settings.svgLeftPadding}px"
           </text>
         {:else if series.dayNumber === 5}
           <text
-            x={series.xPixelStart + settings.weekDayWidth - 4}
+            x={series.xPixelStart + settings.weekDayWidth - 3}
             Y="20"
             font-size="14px"
             text-anchor="end"
