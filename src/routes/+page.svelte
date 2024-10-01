@@ -490,7 +490,7 @@
           // settings.weekDayWidth;
         }}
       />
-      Vis kun helger
+      Vis berre helger
     </label>
   </div>
 
@@ -642,7 +642,7 @@
 
   <!-- Add location -->
   <div class="max-w-md p-4">
-    <h2 class="text-xl merriweather-font mb-2">Legg til sted</h2>
+    <h2 class="text-xl merriweather-font mb-2">Legg til stad</h2>
     <PlaceSearch on:addPlace={handleAddPlace} />
   </div>
 
