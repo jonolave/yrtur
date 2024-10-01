@@ -628,7 +628,7 @@
                   }}
                   class="h-[42px] ml-4 bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
                 >
-                  Ta bort {data.location.name.length > 9
+                  Fjern {data.location.name.length > 9
                     ? data.location.name.substring(0, 8) + ".."
                     : data.location.name}
                 </button>
