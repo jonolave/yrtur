@@ -1,11 +1,14 @@
 <script>
   import "../app.css";
-  import { onMount, tick } from "svelte";
+  import { onMount } from "svelte";
+  import { slide } from "svelte/transition";
+  import { quintOut } from "svelte/easing";
   import { scaleLinear } from "d3-scale";
   import { min, max } from "d3-array";
   import PlaceSearch from "../lib/components/PlaceSearch.svelte";
   import ForecastViz from "../lib/components/ForecastViz.svelte";
   import Xaxis from "../lib/components/Xaxis.svelte";
+  import Legend from "../lib/components/Legend.svelte";
 
   let weatherData = [];
   let weatherDataFiltered = [];
@@ -474,6 +477,7 @@
     </p>
   </div>
 
+  <!-- Checkbox -->
   <div class="pl-4 mb-4">
     <label>
       <input
@@ -495,7 +499,7 @@
   </div>
 
   <!-- Data for all locations -->
-  <div class="relative w-full overflow-hidden mt-2 mb-2">
+  <div class="relative w-full overflow-hidden mt-2 ">
     <div class="flex overflow-x-auto min-w-0" id="scrollContainer">
       <div class="flex-shrink-0 w-full">
         {#if weatherDataFiltered && weatherDataFiltered.length > 0}
@@ -508,9 +512,15 @@
         />
 
           <!-- Weather for each location -->
-          {#each weatherDataFiltered as data, index}
+          {#each weatherDataFiltered as data, index (data.location.name)}
             <!-- weather data for each day -->
-            <div class="mb-4" style="height: {settings.dayHeight}px;">
+            <div class="mb-4" style="height: {settings.dayHeight}px;" key={data.location.name} 
+            transition:slide={{
+              delay: 250,
+              duration: 300,
+              easing: quintOut,
+              axis: "y",
+            }}>
               <!-- Fixed left area per location -->
               <div
                 class="w-[75px] absolute left-0 overflow-hidden flex items-center"
@@ -547,11 +557,11 @@
                           stroke="#222"
                         />
 
-                        {#if maxTemp > 2 && minTemp < -2}
+                        {#if tempScale(minTemp)-tempScale(0) > 8 && tempScale(0)-tempScale(maxTemp) > 8}
                           <text
                             x="18"
                             fill="#222"
-                            Y={tempScale(0) + 2}
+                            Y={tempScale(0) + 3}
                             font-size="12px"
                             text-anchor="end"
                             font-weight="normal"
@@ -572,7 +582,7 @@
                       <text
                         x="18"
                         fill="#222"
-                        Y={tempScale(maxTemp) + 2}
+                        Y={tempScale(maxTemp) + 3}
                         font-size="12px"
                         text-anchor="end"
                         font-weight="normal"
@@ -591,7 +601,7 @@
                       <text
                         x="18"
                         fill="#222"
-                        Y={tempScale(minTemp) + 2}
+                        Y={tempScale(minTemp) + 3}
                         font-size="12px"
                         text-anchor="end"
                         font-weight="normal"
@@ -640,13 +650,17 @@
     </div>
   </div>
 
+  <!-- Legend -->
+  <div class="flex px-4 pb-8 gap-6"><Legend {maxTemp} {minTemp} /></div>
+  
   <!-- Add location -->
   <div class="max-w-md p-4">
+    
     <h2 class="text-xl merriweather-font mb-2">Legg til stad</h2>
     <PlaceSearch on:addPlace={handleAddPlace} />
   </div>
 
-  <p class="max-w-md p-4 pb-24">21-dagarsvarselet er henta frå <a class="text-blue-500 underline" href="https://hjelp.yr.no/hc/no/articles/12329349662492-Nytt-21-dagersvarsel-p%C3%A5-Yr">Yr / Meteorologisk institutt</a>, og dekkjer berre deler av Norden. 
+  <p class="max-w-md p-4 pb-24">21-dagarsvarselet er henta frå <a class="text-blue-500 underline" href="https://hjelp.yr.no/hc/no/articles/12329349662492-Nytt-21-dagersvarsel-p%C3%A5-Yr">Yr / Meteorologisk institutt</a>, og dekkjer deler av Norden. 
   </p>
 </main>
 

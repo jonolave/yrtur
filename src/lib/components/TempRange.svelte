@@ -5,10 +5,10 @@
   export let tempScale;
   export let daytype;
 
-  let colorCold = "#884EF3";
-  let colorColdAlpha = "#884EF355";
-  let colorWarm = "#E71804"
-  let colorWarmAlpha = "#E7180444"
+  const colorWarm = "#E71804"
+  const colorWarmAlpha = "#E7180444"
+  const colorCold = "#884EF3";
+  const colorColdAlpha = "#884EF355";
   
   $: dayWidth = daytype === "weekday" ? settings.weekDayWidth : settings.weekEndDayWidth;
 

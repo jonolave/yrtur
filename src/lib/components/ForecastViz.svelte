@@ -102,3 +102,13 @@
     {/if}
   {/each}
 </svg>
+
+<style lang="postcss">
+  .textOutline {
+    text-shadow:
+      1px 1px 0 #fff,
+      -1px -1px 0 #fff,
+      1px -1px 0 #fff,
+      -1px 1px 0 #fff;
+  }
+</style>
