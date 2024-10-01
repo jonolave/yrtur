@@ -54,7 +54,7 @@
  
 </script>
 
-<div class="h-[400px] flex flex-col gap-4">
+<div class="h-[180px] flex flex-col gap-4">
   <!-- Søkefelt og søkeknapp -->
   <div class="flex gap-2">
     <input

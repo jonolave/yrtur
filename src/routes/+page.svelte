@@ -417,13 +417,13 @@
   <div class="px-5 pt-8 pb-4 mb-3 bg-slate-700">
     <!-- Heading -->
     <h1 class="text-3xl text-yellow-400 mb-1 merriweather-font">
-      Helge&shy;været
+      Helge&shy;vêret
     </h1>
     <h2 class="text-xl text-white mb-5">
-      Sammenlign langtidsvarsel for steder i Norden
+      Samanlikn langtidsvêret for stadar i Norden
     </h2>
 
-    <p class="text-white">Du kan for eksempel sammenligne:</p>
+    <p class="text-white">Du kan til dømes samanlikne:</p>
     <ul class="pl-1">
       <li>
         👉🏻
@@ -433,7 +433,7 @@
           class="text-yellow-400 underline decoration-dotted"
           role="button"
         >
-          Byer i Sør-Norge
+          Byar i Sør-Noreg
         </a>
       </li>
       <li>
@@ -444,7 +444,7 @@
           class="text-yellow-400 underline decoration-dotted"
           role="button"
         >
-          Byer i Nord-Norge
+          Byar i Nord-Noreg
         </a>
       </li>
       <li>
@@ -454,7 +454,7 @@
           class="text-yellow-400 underline decoration-dotted"
           role="button"
         >
-          Skidestinasjoner i Norge
+          Skidestinasjonar i Noreg
         </a>
       </li>
       <li>
@@ -464,13 +464,13 @@
           class="text-yellow-400 underline decoration-dotted"
           role="button"
         >
-          Byer i Norden
+          Byar i Norden
         </a>
       </li>
     </ul>
 
     <p class="my-2 text-white">
-      ...eller søk opp dine egne favoritter nederst på siden!
+      ...eller søkje opp dine eigne favorittar nedst på sida!
     </p>
   </div>
 
@@ -645,6 +645,9 @@
     <h2 class="text-xl merriweather-font mb-2">Legg til sted</h2>
     <PlaceSearch on:addPlace={handleAddPlace} />
   </div>
+
+  <p class="max-w-md p-4 pb-24">21-dagarsvarselet er henta frå <a class="text-blue-500 underline" href="https://hjelp.yr.no/hc/no/articles/12329349662492-Nytt-21-dagersvarsel-p%C3%A5-Yr">Yr / Meteorologisk institutt</a>, og dekkjer berre deler av Norden. 
+  </p>
 </main>
 
 <style lang="postcss">
