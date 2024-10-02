@@ -21,7 +21,7 @@
         ? "cross"
         : "negative";
 
-  $: console.log("Range: ", minTemp, "-", maxTemp, ": ", tempRange);
+  // $: console.log("Range: ", minTemp, "-", maxTemp, ": ", tempRange);
 </script>
 
 <div class="flex items-center gap-1">
@@ -112,5 +112,5 @@
       />
     </svg>
   </div>
-  <div>Regn (median)</div>
+  <div>Regn</div>
 </div>

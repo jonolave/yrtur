@@ -30,7 +30,7 @@
   const handleAddPlace = (event) => {
     const newPlace = event.detail.position;
 
-    console.log("Adding ", newPlace.display_name);
+    // console.log("Adding ", newPlace.display_name);
 
     locations.push({
       name: newPlace.name,
@@ -277,8 +277,8 @@
     weatherDataFiltered = weatherData;
     filterWeatherData();
 
-    console.log("Filtered weather data for all locations:");
-    console.log(weatherDataFiltered);
+    // console.log("Filtered weather data for all locations:");
+    // console.log(weatherDataFiltered);
 
     updateScale();
   }
@@ -346,8 +346,8 @@
       maxTemp = maxValue;
       minTemp = minValue;
 
-      console.log("Min temperature:", minValue);
-      console.log("Max temperature:", maxValue);
+      // console.log("Min temperature:", minValue);
+      // console.log("Max temperature:", maxValue);
 
       // Create a linear scale based on the min and max values
       tempScale = scaleLinear()
@@ -409,259 +409,269 @@
   let scrollContainer; // Scroll container reference
   let xAxis; // Reference to the original x-axis
 
+  console.log(`              
+       ___      
+      (o o)     
+  ooO--(_)--Ooo-
+
+  Hei, Aftenposten!
+
+`);
+
   onMount(() => {
     fetchWeatherForAllLocations();
     filterWeatherData();
   });
 </script>
 
-<main class="">
-  <!-- Top info area -->
-  <div class="px-5 pt-8 pb-4 mb-3 bg-slate-700">
-    <!-- Heading -->
-    <h1 class="text-3xl text-yellow-400 mb-1 merriweather-font">
-      Helge&shy;vêret
-    </h1>
-    <h2 class="text-xl text-white mb-5">
-      Samanlikn langtidsvêret for stadar i Norden
-    </h2>
-
-    <p class="text-white">Du kan til dømes samanlikne:</p>
-    <ul class="pl-1">
-      <li>
-        👉🏻
-        <a
-          href="#"
-          on:click={() => exampleLocations("Sør-Norge")}
-          class="text-yellow-400 underline decoration-dotted"
-          role="button"
-        >
-          Byar i Sør-Noreg
-        </a>
-      </li>
-      <li>
-        👉🏻
-        <a
-          href="#"
-          on:click={() => exampleLocations("Nord-Norge")}
-          class="text-yellow-400 underline decoration-dotted"
-          role="button"
-        >
-          Byar i Nord-Noreg
-        </a>
-      </li>
-      <li>
-        👉🏻 <a
-          href="#"
-          on:click={() => exampleLocations("skidestinasjoner")}
-          class="text-yellow-400 underline decoration-dotted"
-          role="button"
-        >
-          Skidestinasjonar i Noreg
-        </a>
-      </li>
-      <li>
-        👉🏻 <a
-          href="#"
-          on:click={() => exampleLocations("Norden")}
-          class="text-yellow-400 underline decoration-dotted"
-          role="button"
-        >
-          Byar i Norden
-        </a>
-      </li>
-    </ul>
-
-    <p class="my-2 text-white">
-      ...eller søkje opp dine eigne favorittar nedst på sida!
-    </p>
-  </div>
-
-  <!-- Checkbox -->
-  <div class="pl-4 mb-4">
-    <label>
-      <input
-        type="checkbox"
-        bind:checked={weekendsOnly}
-        onclick={() => {
-          filterWeatherData();
-          updateScale();
-          svgTotalWidth =
-            weekDays * settings.weekDayWidth +
-            weekendDays * settings.weekEndDayWidth;
-
-          // weatherDataFiltered[0].subseasonal.properties.timeseries.length *
-          // settings.weekDayWidth;
-        }}
-      />
-      Vis berre helger
-    </label>
-  </div>
-
-  <!-- Data for all locations -->
-  <div class="relative w-full overflow-hidden mt-2 ">
-    <div class="flex overflow-x-auto min-w-0" id="scrollContainer">
-      <div class="flex-shrink-0 w-full">
-        {#if weatherDataFiltered && weatherDataFiltered.length > 0}
-          <!-- X-axis with days -->
-          <Xaxis
-          {svgTotalWidth}
-          {settings}
-          {weatherDataFiltered}
-          {formatDate}
-        />
-
-          <!-- Weather for each location -->
-          {#each weatherDataFiltered as data, index (data.location.name)}
-            <!-- weather data for each day -->
-            <div class="mb-4" style="height: {settings.dayHeight}px;" key={data.location.name} 
-            transition:slide={{
-              delay: 250,
-              duration: 300,
-              easing: quintOut,
-              axis: "y",
-            }}>
-              <!-- Fixed left area per location -->
-              <div
-                class="w-[75px] absolute left-0 overflow-hidden flex items-center"
-                style="height: {settings.dayHeight}px;"
-              >
-                <div
-                  class="w-[50px] flex justify-center bg-slate-200 items-center h-full"
-                >
-                  <!-- Name of location -->
-                  <div
-                    class="w-[30px] ml-8 bg-white rounded-l-[4px] h-full flex justify-center items-center"
-                  >
-                    <h3
-                      class="transform -rotate-90 origin-center whitespace-nowrap text-l font-medium"
-                    >
-                      {data.location.name.length > 9
-                        ? data.location.name.substring(0, 7) + ".."
-                        : data.location.name}
-                    </h3>
-                  </div>
-
-                  <!-- Y axis -->
-                  <div
-                    class="w-[20px] bg-white h-full shadow-[0_0_5px_2px_rgba(255,255,255,1.0)]"
-                  >
-                    <svg width="25" height={settings.dayHeight}>
-                      {#if minTemp < 0 && maxTemp > 0}
-                        <!-- 0 degrees -->
-                        <line
-                          x1="18"
-                          y1={tempScale(0)}
-                          x2="25"
-                          y2={tempScale(0)}
-                          stroke="#222"
-                        />
-
-                        {#if tempScale(minTemp)-tempScale(0) > 8 && tempScale(0)-tempScale(maxTemp) > 8}
-                          <text
-                            x="18"
-                            fill="#222"
-                            Y={tempScale(0) + 3}
-                            font-size="12px"
-                            text-anchor="end"
-                            font-weight="normal"
-                          >
-                            0°
-                          </text>
-                        {/if}
-                      {/if}
-
-                      <!-- Max tem -->
-                      <line
-                        x1="18"
-                        y1={tempScale(maxTemp)}
-                        x2="25"
-                        y2={tempScale(maxTemp)}
-                        stroke="#222"
-                      />
-                      <text
-                        x="18"
-                        fill="#222"
-                        Y={tempScale(maxTemp) + 3}
-                        font-size="12px"
-                        text-anchor="end"
-                        font-weight="normal"
-                      >
-                        {Math.round(maxTemp)}°
-                      </text>
-
-                      <!-- Min tem -->
-                      <line
-                        x1="18"
-                        y1={tempScale(minTemp)}
-                        x2="25"
-                        y2={tempScale(minTemp)}
-                        stroke="#222"
-                      />
-                      <text
-                        x="18"
-                        fill="#222"
-                        Y={tempScale(minTemp) + 3}
-                        font-size="12px"
-                        text-anchor="end"
-                        font-weight="normal"
-                      >
-                        {Math.round(minTemp)}°
-                      </text>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <!-- SVG per location-->
-              <div
-                class="flex items-center"
-                style="width: {svgTotalWidth +
-                  settings.svgLeftPadding +
-                  240}px;"
-              >
-                <ForecastViz
-                  {svgTotalWidth}
-                  {settings}
-                  {minTemp}
-                  {maxTemp}
-                  {tempScale}
-                  {rainScale}
-                  {data}
-                />
-
-                <button
-                  on:click={() => {
-                    locations.splice(index, 1); // Remove one element at the index
-                    fetchWeatherForAllLocations();
-                    filterWeatherData(); // Call the filter function
-                  }}
-                  class="h-[42px] ml-4 bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
-                >
-                  Fjern {data.location.name.length > 9
-                    ? data.location.name.substring(0, 8) + ".."
-                    : data.location.name}
-                </button>
-              </div>
-            </div>
-          {/each}
-        {/if}
-      </div>
+<main class="w-full flex-col justify-start items-center">
+  <!-- Hero -->
+  <div class="w-full bg-slate-700 flex-col justify-start items-center">
+    <div class="w-full max-w-[1050px] mx-auto px-5 pt-8 pb-4 mb-3">
+      <!-- Heading info -->
+      <h1 class="text-3xl text-yellow-400 mb-1 merriweather-font">
+        Helge&shy;vêret
+      </h1>
+      
+      <h2 class="text-xl text-white mb-5">
+        Samanlikn langtidsvêret for stadar i Norden
+      </h2>
+      <p class="text-white">Du kan til dømes samanlikne:</p>
+      <ul class="pl-1">
+        <li class="py-1">
+          👉🏻
+          <a
+            href="#"
+            on:click={() => exampleLocations("Sør-Norge")}
+            class="text-yellow-400 underline decoration-dotted"
+            role="button"
+          >
+            Byar i Sør-Noreg
+          </a>
+        </li>
+        <li class="py-1">
+          👉🏻
+          <a
+            href="#"
+            on:click={() => exampleLocations("Nord-Norge")}
+            class="text-yellow-400 underline decoration-dotted"
+            role="button"
+          >
+            Byar i Nord-Noreg
+          </a>
+        </li>
+        <li class="py-1">
+          👉🏻 <a
+            href="#"
+            on:click={() => exampleLocations("skidestinasjoner")}
+            class="text-yellow-400 underline decoration-dotted"
+            role="button"
+          >
+            Skidestinasjonar i Noreg
+          </a>
+        </li>
+        <li class="py-1">
+          👉🏻 <a
+            href="#"
+            on:click={() => exampleLocations("Norden")}
+            class="text-yellow-400 underline decoration-dotted"
+            role="button"
+          >
+            Byar i Norden
+          </a>
+        </li>
+      </ul>
+      <p class="my-2 text-white">
+        ...eller søkje opp dine eigne favorittar nedst på sida!
+      </p>
     </div>
   </div>
+  <div class="w-full max-w-[1050px] mx-auto flex-col justify-start items-start">
+    <!-- Checkbox -->
+    <div class="pl-4 mb-4">
+      <label>
+        <input
+          type="checkbox"
+          bind:checked={weekendsOnly}
+          onclick={() => {
+            filterWeatherData();
+            updateScale();
+            svgTotalWidth =
+              weekDays * settings.weekDayWidth +
+              weekendDays * settings.weekEndDayWidth;
+            // weatherDataFiltered[0].subseasonal.properties.timeseries.length *
+            // settings.weekDayWidth;
+          }}
+        />
+        Vis berre helger
+      </label>
+    </div>
+    <!-- Data for all locations -->
+    <div class="relative w-full overflow-hidden mt-2">
+      <div class="flex overflow-x-auto min-w-0" id="scrollContainer">
+        <div class="flex-shrink-0 w-full">
+          {#if weatherDataFiltered && weatherDataFiltered.length > 0}
+            <!-- X-axis with days -->
+            <Xaxis
+              {svgTotalWidth}
+              {settings}
+              {weatherDataFiltered}
+              {formatDate}
+            />
+            <!-- Weather for each location -->
+            {#each weatherDataFiltered as data, index (data.location.name)}
+              <!-- weather data for each day -->
+              <div
+                class="mb-4"
+                style="height: {settings.dayHeight}px;"
+                key={data.location.name}
+                transition:slide={{
+                  delay: 250,
+                  duration: 300,
+                  easing: quintOut,
+                  axis: "y",
+                }}
+              >
+                <!-- Fixed left area per location -->
+                <div
+                  class="w-[75px] absolute left-0 overflow-hidden flex items-center"
+                  style="height: {settings.dayHeight}px;"
+                >
+                  <div
+                    class="w-[50px] flex justify-center bg-slate-200 items-center h-full"
+                  >
+                    <!-- Name of location -->
+                    <div
+                      class="w-[30px] ml-8 bg-white rounded-l-[4px] h-full flex justify-center items-center"
+                    >
+                      <h3
+                        class="transform -rotate-90 origin-center whitespace-nowrap text-l font-medium"
+                      >
+                        {data.location.name.length > 9
+                          ? data.location.name.substring(0, 7) + ".."
+                          : data.location.name}
+                      </h3>
+                    </div>
+                    <!-- Y axis -->
+                    <div
+                      class="w-[20px] bg-white h-full shadow-[0_0_5px_2px_rgba(255,255,255,1.0)]"
+                    >
+                      <svg width="25" height={settings.dayHeight}>
+                        {#if minTemp < 0 && maxTemp > 0}
+                          <!-- 0 degrees -->
+                          <line
+                            x1="18"
+                            y1={tempScale(0)}
+                            x2="25"
+                            y2={tempScale(0)}
+                            stroke="#222"
+                          />
+                          {#if tempScale(minTemp) - tempScale(0) > 8 && tempScale(0) - tempScale(maxTemp) > 8}
+                            <text
+                              x="18"
+                              fill="#222"
+                              Y={tempScale(0) + 3}
+                              font-size="12px"
+                              text-anchor="end"
+                              font-weight="normal"
+                            >
+                              0°
+                            </text>
+                          {/if}
+                        {/if}
+                        <!-- Max tem -->
+                        <line
+                          x1="18"
+                          y1={tempScale(maxTemp)}
+                          x2="25"
+                          y2={tempScale(maxTemp)}
+                          stroke="#222"
+                        />
+                        <text
+                          x="18"
+                          fill="#222"
+                          Y={tempScale(maxTemp) + 3}
+                          font-size="12px"
+                          text-anchor="end"
+                          font-weight="normal"
+                        >
+                          {Math.round(maxTemp)}°
+                        </text>
+                        <!-- Min tem -->
+                        <line
+                          x1="18"
+                          y1={tempScale(minTemp)}
+                          x2="25"
+                          y2={tempScale(minTemp)}
+                          stroke="#222"
+                        />
+                        <text
+                          x="18"
+                          fill="#222"
+                          Y={tempScale(minTemp) + 3}
+                          font-size="12px"
+                          text-anchor="end"
+                          font-weight="normal"
+                        >
+                          {Math.round(minTemp)}°
+                        </text>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <!-- SVG per location-->
+                <div
+                  class="flex items-center"
+                  style="width: {svgTotalWidth +
+                    settings.svgLeftPadding +
+                    240}px;"
+                >
+                  <ForecastViz
+                    {svgTotalWidth}
+                    {settings}
+                    {minTemp}
+                    {maxTemp}
+                    {tempScale}
+                    {rainScale}
+                    {data}
+                  />
+                  <button
+                    on:click={() => {
+                      locations.splice(index, 1); // Remove one element at the index
+                      fetchWeatherForAllLocations();
+                      filterWeatherData(); // Call the filter function
+                    }}
+                    class="h-[42px] ml-4 bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+                  >
+                    Fjern {data.location.name.length > 9
+                      ? data.location.name.substring(0, 8) + ".."
+                      : data.location.name}
+                  </button>
+                </div>
+              </div>
+            {/each}
+          {/if}
+        </div>
+      </div>
+    </div>
+    <!-- Legend -->
+    <div class="flex px-4 pb-8 gap-6"><Legend {maxTemp} {minTemp} /></div>
 
-  <!-- Legend -->
-  <div class="flex px-4 pb-8 gap-6"><Legend {maxTemp} {minTemp} /></div>
-  
-  <!-- Add location -->
-  <div class="max-w-md p-4">
-    
-    <h2 class="text-xl merriweather-font mb-2">Legg til stad</h2>
-    <PlaceSearch on:addPlace={handleAddPlace} />
+    <!-- Add location -->
+    <div class="max-w-md p-4">
+      <h2 class="text-xl merriweather-font mb-2">Legg til stad</h2>
+      <PlaceSearch on:addPlace={handleAddPlace} />
+    </div>
+    <p class="max-w-md p-4 pb-24">
+      21-dagarsvarselet er henta frå <a
+        class="text-blue-500 underline"
+        href="https://hjelp.yr.no/hc/no/articles/12329349662492-Nytt-21-dagersvarsel-p%C3%A5-Yr"
+      >
+        Yr / Meteorologisk institutt
+      </a>
+      , og dekkjer deler av Norden.
+    </p>
   </div>
-
-  <p class="max-w-md p-4 pb-24">21-dagarsvarselet er henta frå <a class="text-blue-500 underline" href="https://hjelp.yr.no/hc/no/articles/12329349662492-Nytt-21-dagersvarsel-p%C3%A5-Yr">Yr / Meteorologisk institutt</a>, og dekkjer deler av Norden. 
-  </p>
 </main>
 
 <style lang="postcss">
