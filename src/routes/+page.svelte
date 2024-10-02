@@ -686,24 +686,4 @@
     font-weight: 400;
   }
 
-  #sticky-axis {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-
-  #sticky-axis::-webkit-scrollbar {
-    display: none;
-  }
-
-  .svgRainText {
-    fill: theme(colors.blue.500);
-  }
-
-  .textOutline {
-    text-shadow:
-      1px 1px 0 #fff,
-      -1px -1px 0 #fff,
-      1px -1px 0 #fff,
-      -1px 1px 0 #fff;
-  }
 </style>

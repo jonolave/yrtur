@@ -47,7 +47,7 @@
     {#if series.data.next_24_hours}
       <!-- Draw weekend data -->
       {#if series.dayNumber === 6 || series.dayNumber === 0}
-        <TempRange {series} {settings} {tempScale} daytype="weekend"/>
+        <TempRange {series} {settings} {tempScale} daytype="weekend" />
 
         <!-- Rain rectangle -->
         <rect
@@ -61,6 +61,7 @@
 
         <!-- Rain as text -->
         {#if series.data.next_24_hours.details.precipitation_amount != 0}
+          <!-- Outline -->
           <text
             x={series.xPixelStart +
               settings.weekEndDayWidth / 2 +
@@ -68,7 +69,23 @@
             Y={rainScale(
               series.data.next_24_hours.details.precipitation_amount
             ) - 5}
-            class="svgRainText text-sm textOutline"
+            class="svgRainText text-sm"
+            text-anchor="middle"
+            fill={colorRain}
+            stroke="white"
+            stroke-width="2.5"
+          >
+            {series.data.next_24_hours.details.precipitation_amount}
+          </text>
+          <!-- Text -->
+          <text
+            x={series.xPixelStart +
+              settings.weekEndDayWidth / 2 +
+              settings.svgLeftPadding}
+            Y={rainScale(
+              series.data.next_24_hours.details.precipitation_amount
+            ) - 5}
+            class="svgRainText text-sm"
             text-anchor="middle"
             fill={colorRain}
           >
@@ -87,7 +104,7 @@
           fill="#33415511"
         />
 
-        <TempRange {series} {settings} {tempScale} daytype="weekday"/>
+        <TempRange {series} {settings} {tempScale} daytype="weekday" />
 
         <!-- Rain rectangle -->
         <rect
@@ -102,13 +119,3 @@
     {/if}
   {/each}
 </svg>
-
-<style lang="postcss">
-  .textOutline {
-    text-shadow:
-      1px 1px 0 #fff,
-      -1px -1px 0 #fff,
-      1px -1px 0 #fff,
-      -1px 1px 0 #fff;
-  }
-</style>
