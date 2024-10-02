@@ -434,7 +434,7 @@
       </h1>
       
       <h2 class="text-xl text-white mb-5">
-        Samanlikn langtidsvêret for stadar i Norden
+        Samanlikn langtidsvarselet for ulike stadar i Norden
       </h2>
       <p class="text-white">Du kan til dømes samanlikne:</p>
       <ul class="pl-1">
@@ -668,8 +668,7 @@
         href="https://hjelp.yr.no/hc/no/articles/12329349662492-Nytt-21-dagersvarsel-p%C3%A5-Yr"
       >
         Yr / Meteorologisk institutt
-      </a>
-      , og dekkjer deler av Norden.
+      </a>, og dekkjer deler av Norden.
     </p>
   </div>
 </main>
