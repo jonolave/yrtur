@@ -37,7 +37,6 @@
       });
   }
 
-
   // Funksjon som sender sted til hovedkomponenten
   const addPlace = () => {
     if (place.trim() !== "") {
@@ -47,38 +46,38 @@
     }
   };
 
-  onMount(() => { 
+  onMount(() => {
     const placeSearchInput = document.getElementById("placeSearchInput");
-
   });
- 
 </script>
 
-<div class="h-[180px] flex flex-col gap-4">
+<div class="flex flex-col gap-4">
   <!-- Søkefelt og søkeknapp -->
-  <div class="flex gap-2">
-    <input
-    id="placeSearchInput"
-      type="text"
-      placeholder="Skriv inn et sted..."
-      bind:value={place}
-      on:keydown={handleKeyDown}
-      class="border p-2 rounded flex-1"
-    />
-
-    <!-- Søkeknapp -->
-    <button
-      on:click={handleSearch}
-      class="bg-blue-500 hover:bg-blue-700 text-white font-bold px-4 rounded"
-    >
-      Søk
-    </button>
+  <div class="flex flex-col gap-2">
+    <label for="placeSearchInput" class="text-white">Søk etter sted:</label>
+    <div class="flex gap-2"> 
+      <input
+        id="placeSearchInput"
+        type="text"
+        placeholder=""
+        bind:value={place}
+        on:keydown={handleKeyDown}
+        class="border p-2 rounded-full flex-1"
+      />
+      <!-- Søkeknapp -->
+      <button
+        on:click={handleSearch}
+        class="bg-[#092A44] hover:bg-[#000] text-white px-6 rounded-full"
+      >
+        Legg til
+      </button>
+    </div>
   </div>
 
   <!-- Resultat -->
   {#if submittedPlace}
     <div>
-      <h3 class="text-l mb-2">Treff:</h3>
+      <h3 class="text-l mb-2 text-white">Treff:</h3>
       <div
         class="bg-white rounded-[4px] shadow-sm hover:shadow-lg flex gap-4 p-4 items-center"
       >

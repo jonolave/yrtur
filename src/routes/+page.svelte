@@ -424,66 +424,61 @@
   });
 </script>
 
-<main class="w-full flex-col justify-start items-center">
+<main class="w-full min-h-screen overflow-x-hidden">
+  <img
+    src="sky.png"
+    alt="Yr logo"
+    class="absolute top-0 -right-24 w-2/3 animate-moveRightLeft"
+  />
+
   <!-- Hero -->
-  <div class="w-full bg-slate-700 flex-col justify-start items-center">
-    <div class="w-full max-w-[1050px] mx-auto px-5 pt-8 pb-4 mb-3">
+  <div class="w-full flex-col justify-start items-center">
+    <div class="w-full max-w-[1050px] mx-auto px-5 pb-4 mb-3 mt-[180px]">
       <!-- Heading info -->
-      <h1 class="text-3xl text-yellow-400 mb-1 merriweather-font">
+      <h1 class="text-4xl text-white mb-1 merriweather-font">
         Helge&shy;vêret
       </h1>
-      
-      <h2 class="text-xl text-white mb-5">
-        Samanlikn langtidsvarselet for ulike stadar i Norden
+
+      <h2 class="text-xl text-white mt-1 mb-10 font-light">
+        Samanlikn vêrmeldinga for dine favorittstadar og planlegg neste tur
       </h2>
-      <p class="text-white">Du kan til dømes samanlikne:</p>
-      <ul class="pl-1">
-        <li class="py-1">
-          👉🏻
-          <a
-            href="#"
-            on:click={() => exampleLocations("Sør-Norge")}
-            class="text-yellow-400 underline decoration-dotted"
-            role="button"
-          >
-            Byar i Sør-Noreg
-          </a>
-        </li>
-        <li class="py-1">
-          👉🏻
-          <a
-            href="#"
-            on:click={() => exampleLocations("Nord-Norge")}
-            class="text-yellow-400 underline decoration-dotted"
-            role="button"
-          >
-            Byar i Nord-Noreg
-          </a>
-        </li>
-        <li class="py-1">
-          👉🏻 <a
-            href="#"
-            on:click={() => exampleLocations("skidestinasjoner")}
-            class="text-yellow-400 underline decoration-dotted"
-            role="button"
-          >
-            Skidestinasjonar i Noreg
-          </a>
-        </li>
-        <li class="py-1">
-          👉🏻 <a
-            href="#"
-            on:click={() => exampleLocations("Norden")}
-            class="text-yellow-400 underline decoration-dotted"
-            role="button"
-          >
-            Byar i Norden
-          </a>
-        </li>
-      </ul>
-      <p class="my-2 text-white">
-        ...eller søkje opp dine eigne favorittar nedst på sida!
-      </p>
+
+      <!-- Ekssempel -->
+      <div class="flex flex-wrap justify-start items-start gap-2 my-5">
+        <!-- Sør-Noreg -->
+        <button
+          class="predefinedButton"
+          on:click={() => exampleLocations("Sør-Norge")}
+        >
+          Sør-Noreg
+        </button>
+        <!-- Nord-Noreg -->
+        <button
+          class="predefinedButton"
+          on:click={() => exampleLocations("Nord-Norge")}
+        >
+          Nord-Noreg
+        </button>
+        <!-- Skianlegg -->
+        <button
+          class="predefinedButton"
+          on:click={() => exampleLocations("skidestinasjoner")}
+        >
+          Skianlegg
+        </button>
+        <!-- Norden -->
+        <button
+          class="predefinedButton"
+          on:click={() => exampleLocations("Norden")}
+        >
+          Norden
+        </button>
+      </div>
+
+      <!-- Add location -->
+      <div class="max-w-md pb-4">
+        <PlaceSearch on:addPlace={handleAddPlace} />
+      </div>
     </div>
   </div>
   <div class="w-full max-w-[1050px] mx-auto flex-col justify-start items-start">
@@ -657,27 +652,27 @@
     <!-- Legend -->
     <div class="flex px-4 pb-8 gap-6"><Legend {maxTemp} {minTemp} /></div>
 
-    <!-- Add location -->
-    <div class="max-w-md p-4">
-      <h2 class="text-xl merriweather-font mb-2">Legg til stad</h2>
-      <PlaceSearch on:addPlace={handleAddPlace} />
-    </div>
     <p class="max-w-md p-4 pb-24">
       21-dagarsvarselet er henta frå <a
         class="text-blue-500 underline"
         href="https://hjelp.yr.no/hc/no/articles/12329349662492-Nytt-21-dagersvarsel-p%C3%A5-Yr"
       >
         Yr / Meteorologisk institutt
-      </a>, og dekkjer deler av Norden.
+      </a>
+      , og dekkjer deler av Norden.
     </p>
   </div>
 </main>
 
 <style lang="postcss">
   @import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@400&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap");
 
   :global(html) {
-    background-color: theme(colors.slate.200);
+    background-image: linear-gradient(to bottom right, #1a548e, #0a7cbe);
+    font-family: "Leto", sans-serif;
+    overflow-x: hidden;
+
   }
 
   .merriweather-font {
@@ -686,4 +681,33 @@
     font-weight: 400;
   }
 
+  .predefinedButton {
+    background-color: #1563a0;
+    color: #fff;
+    border: 1px solid #fff;
+    border-radius: 24px;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .predefinedButton:hover {
+    background-color: #115183;
+  }
+
+  @keyframes moveRightLeft {
+    0% {
+      right: -200; /* Start at the right side of the window */
+    }
+    50% {
+      right: 0; /* Move the image out of the window to the right */
+    }
+    100% {
+      right: -200; /* Back to the start position */
+    }
+  }
+
+  .animate-moveRightLeft {
+    animation: moveRightLeft 40s ease-in-out infinite; /* Apply the animation */
+  }
 </style>

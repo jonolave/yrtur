@@ -5,8 +5,8 @@
   export let tempScale;
   export let daytype;
 
-  const colorWarm = "#E71804"
-  const colorWarmAlpha = "#E7180444"
+  const colorWarm = "#E86500"
+  const colorWarmAlpha = "#E8650044"
   const colorCold = "#884EF3";
   const colorColdAlpha = "#884EF355";
   
@@ -42,6 +42,7 @@
     x2={series.xPixelStart + dayWidth + settings.svgLeftPadding}
     y2={tempScale(maxTemp)}
     stroke={maxTemp > 0 ? colorWarm : colorCold}
+    stroke-width="2"
   />
 
   <!-- Temperature min line -->
@@ -51,6 +52,7 @@
     x2={series.xPixelStart + dayWidth + settings.svgLeftPadding}
     y2={tempScale(minTemp)}
     stroke={maxTemp > 0 ? colorWarm : colorCold}
+    stroke-width="2"
   />
 
   {#if daytype === "weekend"}
@@ -93,6 +95,7 @@
     x2={series.xPixelStart + dayWidth + settings.svgLeftPadding}
     y2={tempScale(maxTemp)}
     stroke={maxTemp > 0 ? colorWarm : colorCold}
+    stroke-width="2"
   />
 
   <!-- Temperature min line -->
@@ -102,6 +105,7 @@
     x2={series.xPixelStart + dayWidth + settings.svgLeftPadding}
     y2={tempScale(minTemp)}
     stroke={minTemp > 0 ? colorWarm : colorCold}
+    stroke-width="2"
   />
 
   {#if daytype === "weekend"}
