@@ -10,9 +10,9 @@
   const handleSearch = () => {
     if (place.trim() !== "") {
       submittedPlace = place;
-      console.log(`Søker etter: ${place}`);
+      // console.log(`Søker etter: ${place}`);
       getPosition(place);
-      place= "";
+      // place= "";
     }
   };
 
@@ -29,7 +29,7 @@
       .then((response) => response.json())
       .then((data) => {
         position = data[0];
-        console.log(position);
+        // console.log(position);
       })
       .catch((error) => {
         console.error(error);
@@ -43,6 +43,7 @@
       dispatch("addPlace", { position });
       placeSearchInput.value = "";
       submittedPlace = "";
+      // console.log(`Legger til: ${position.display_name}`);
     }
   };
 
