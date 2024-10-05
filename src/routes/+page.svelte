@@ -326,7 +326,7 @@
             // Check if the next_24_hours and its details exist
             return day.data?.next_24_hours?.details?.air_temperature_min;
           })
-          .filter((temp) => temp !== undefined); 
+          .filter((temp) => temp !== undefined);
       } else {
         return [];
       }
@@ -423,12 +423,14 @@
   });
 </script>
 
-<main class="w-full min-h-screen overflow-x-hidden">
-  <img
-    src="sky.png"
-    alt="Yr logo"
-    class="absolute top-0 -right-24 w-2/3 animate-moveRightLeft"
-  />
+<main class="w-full min-h-screen overflow-x-hidden relative">
+  <div class="relative w-full h-full">
+    <img
+      src="sky.png"
+      alt=""
+      class="absolute top-0 right-0 w-2/3 animate-moveRightLeft"
+    />
+  </div>
 
   <!-- Top -->
   <section class="w-full flex-col justify-start items-center">
@@ -504,8 +506,11 @@
       </div>
       <!-- Data for all locations -->
       <div class="relative w-full overflow-hidden mt-2">
-        <div class="flex overflow-x-auto min-w-0" id="scrollContainer"
-        bind:this={container}>
+        <div
+          class="flex overflow-x-auto min-w-0"
+          id="scrollContainer"
+          bind:this={container}
+        >
           <div class="flex-shrink-0 w-full">
             {#if weatherDataFiltered && weatherDataFiltered.length > 0}
               <!-- X-axis with days -->
@@ -674,7 +679,7 @@
   @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
 
-  :global(html) {
+  :global(html, body) {
     background-image: linear-gradient(to bottom right, #1a548e, #0a7cbe);
     font-family: 'Leto', sans-serif;
     overflow-x: hidden;
@@ -702,17 +707,21 @@
 
   @keyframes moveRightLeft {
     0% {
-      right: -200;
+      transform: translateX(200px);
     }
     50% {
-      right: 0;
+      transform: translateX(0);
     }
     100% {
-      right: -200;
+      transform: translateX(200px);
     }
   }
 
   .animate-moveRightLeft {
-    animation: moveRightLeft 40s ease-in-out infinite; 
+    animation: moveRightLeft 40s ease-in-out infinite;
+  }
+
+  .clip-container {
+    clip-path: inset(0px 0px 0px 0px);
   }
 </style>
