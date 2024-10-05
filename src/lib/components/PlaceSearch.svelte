@@ -10,9 +10,9 @@
   const handleSearch = () => {
     if (place.trim() !== "") {
       submittedPlace = place;
-      // Her kan du legge til API-kall eller annen logikk
       console.log(`Søker etter: ${place}`);
       getPosition(place);
+      place= "";
     }
   };
 
@@ -67,9 +67,9 @@
       <!-- Søkeknapp -->
       <button
         on:click={handleSearch}
-        class="bg-[#092A44] hover:bg-[#000] text-white px-6 rounded-full"
+        class="bg-[#092A44] hover:bg-[#000] text-white px-6 rounded-full shrink-0"
       >
-        Legg til
+        Søk
       </button>
     </div>
   </div>
@@ -84,7 +84,7 @@
         <p class="flex-1 font-bold">{position.display_name}</p>
         <button
           on:click={addPlace}
-          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          class="bg-[#092A44] hover:bg-[#000] text-white px-6 rounded-full h-[42px]"
         >
           Legg til
         </button>
