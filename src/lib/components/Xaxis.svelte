@@ -6,7 +6,7 @@
 </script>
 
 <div
-  class="bg-white pl-[34px] mb-2 h-[48px] ml-4 rounded-[4px]"
+  class="bg-white pl-[34px] mb-4 h-[48px] ml-4 rounded-[4px]"
   style="width: {svgTotalWidth + settings.svgLeftPadding}px"
 >
   <!-- Fixed left area per location -->

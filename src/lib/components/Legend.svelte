@@ -112,5 +112,5 @@
       />
     </svg>
   </div>
-  <div>Regn</div>
+  <div>Regn (mm)</div>
 </div>

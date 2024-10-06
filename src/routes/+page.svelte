@@ -13,18 +13,15 @@
   const settings = {
     weekDayWidth: 16,
     weekEndDayWidth: 60,
-    dayHeight: 100,
+    dayHeight: 120,
     svgLeftPadding: 51,
   };
 
+  let locations = defaultLocations();
+
   let weatherData = [];
   let weatherDataFiltered = [];
-  let locations = [
-    { name: 'Oslo', lat: 59.92, lon: 10.75 },
-    { name: 'Bergen', lat: 60.39, lon: 5.32 },
-    { name: 'Trondheim', lat: 63.43, lon: 10.39 },
-    { name: 'Tromsø', lat: 69.65, lon: 18.96 },
-  ];
+
   let weekendsOnly = false;
   let maxTemp;
   let minTemp;
@@ -44,12 +41,26 @@
     }
   }
 
+  function saveToLocalStorage() {
+    localStorage.setItem('yrturlocations', JSON.stringify(locations));
+  }
+
   const handleAddPlace = (event) => {
     const newPlace = event.detail.position;
 
-    // console.log("Adding ", newPlace.display_name);
+    // Check if the location is already in the list by comparing its name, lat, and lon
+    const isDuplicate = locations.some(
+      (location) =>
+        location.name === newPlace.name ||
+        (location.lat === newPlace.lat && location.lon === newPlace.lon)
+    );
 
-    locations.push({
+    if (isDuplicate) {
+      alert(`Du har allereie ${newPlace.name} i lista.`);
+      return;
+    }
+
+    locations.unshift({
       name: newPlace.name,
       lat: newPlace.lat,
       lon: newPlace.lon,
@@ -57,7 +68,17 @@
 
     fetchWeatherForAllLocations();
     filterWeatherData();
+    saveToLocalStorage();
   };
+
+  function defaultLocations() {
+    return [
+      { name: 'Oslo', lat: 59.92, lon: 10.75 },
+      { name: 'Bergen', lat: 60.39, lon: 5.32 },
+      { name: 'Trondheim', lat: 63.43, lon: 10.39 },
+      { name: 'Tromsø', lat: 69.65, lon: 18.96 },
+    ];
+  }
 
   function exampleLocations(location) {
     switch (location) {
@@ -410,6 +431,17 @@
 `);
 
   onMount(() => {
+    const yrturlocations = localStorage.getItem('yrturlocations');
+
+    if (yrturlocations) {
+      try {
+        locations = JSON.parse(yrturlocations);
+        console.log('Locations loaded from localStorage', locations);
+      } catch (error) {
+        console.error('Error parsing localStorage data', error);
+      }
+    }
+
     fetchWeatherForAllLocations();
     filterWeatherData();
     checkOverflow();
@@ -428,13 +460,13 @@
     <img
       src="sky.png"
       alt=""
-      class="absolute top-0 right-0 w-2/3 animate-moveRightLeft"
+      class="absolute top-0 right-0 max-h-[230px] max-w-full w-auto animate-moveRightLeft"
     />
   </div>
 
   <!-- Top -->
   <section class="w-full flex-col justify-start items-center">
-    <div class="w-full max-w-[1050px] mx-auto px-5 pb-4 mb-3 mt-[180px]">
+    <div class="w-full max-w-[840px] mx-auto px-5 pb-4 mb-3 mt-[180px]">
       <!-- Heading info -->
       <h1 class="text-4xl text-white mb-1 merriweather-font">
         Helge&shy;vêret
@@ -477,13 +509,10 @@
   </section>
 
   <!-- Locations with weather -->
-  <section
-    class="w-full max-w-[1050px] flex-col justify-start items-start mx-auto"
-    style="overflow-x: auto; "
-  >
+  <section class="max-w-[840px] mx-auto" style="overflow-x: auto; ">
     <div
-      class="pl-2 py-4 ml-5 {hasOverflow ? 'rounded-l-xl' : 'rounded-xl'}"
-      style="background-color: rgba(255, 255, 255, 0.8);"
+      class="pl-4 py-4 ml-5 {hasOverflow ? 'rounded-l-xl' : 'rounded-xl'}"
+      style="background-color: rgba(255, 255, 255, 0.9);"
     >
       <!-- Checkbox -->
       <div class="mb-4 ml-2">
@@ -540,17 +569,17 @@
                     style="height: {settings.dayHeight}px;"
                   >
                     <div
-                      class="w-[42px] flex justify-center items-center h-full"
+                      class="w-[44px] flex justify-center items-center h-full"
                     >
                       <!-- Name of location -->
                       <div
-                        class="w-[30px] bg-white h-full flex justify-center items-center"
+                        class="w-[32px] bg-white pl-1 h-full flex justify-center items-center"
                       >
                         <h3
                           class="transform -rotate-90 origin-center whitespace-nowrap text-l font-medium"
                         >
-                          {data.location.name.length > 9
-                            ? data.location.name.substring(0, 7) + '..'
+                          {data.location.name.length > 12
+                            ? data.location.name.substring(0, 10) + '..'
                             : data.location.name}
                         </h3>
                       </div>
@@ -626,7 +655,7 @@
                     class="flex items-center overflow-hidden"
                     style="width: {svgTotalWidth +
                       settings.svgLeftPadding +
-                      240}px;"
+                      64}px;"
                   >
                     <ForecastViz
                       {svgTotalWidth}
@@ -637,18 +666,31 @@
                       {rainScale}
                       {data}
                     />
-                    <button
-                      on:click={() => {
-                        locations.splice(index, 1); // Remove one element at the index
-                        fetchWeatherForAllLocations();
-                        filterWeatherData(); // Call the filter function
-                      }}
-                      class="h-[42px] ml-4 bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
-                    >
-                      Fjern {data.location.name.length > 9
-                        ? data.location.name.substring(0, 8) + '..'
-                        : data.location.name}
-                    </button>
+                    <div class="ml-2">
+                      <button
+                        on:click={() => {
+                          locations.splice(index, 1); // Remove one element at the index
+                          fetchWeatherForAllLocations();
+                          filterWeatherData(); 
+                          saveToLocalStorage();
+                        }}
+                        class="h-7 w-7 bg-white hover:bg-[#115183] text-blue-700 font-semibold hover:text-white border border-[#115183] hover:border-transparent rounded-full shrink-0 flex items-center justify-center"
+                      >
+                        <svg
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          class="h-4 w-4"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               {/each}
@@ -662,14 +704,16 @@
   </section>
 
   <footer class="w-full flex-col justify-start items-center">
-    <div class="w-full max-w-[1050px] mx-auto px-5 pb-12 pt-8 mb-3">
+    <div class="w-full max-w-[840px] mx-auto px-5 pb-12 pt-8 mb-3">
       <p class="text-blue-100">
         21-dagarsvarselet er henta frå <a
           class="text-blue-100 underline"
           href="https://hjelp.yr.no/hc/no/articles/12329349662492-Nytt-21-dagersvarsel-p%C3%A5-Yr"
         >
           Yr / Meteorologisk institutt</a
-        >, og dekkjer deler av Norden.
+        >, og dekkjer deler av Norden. Det er stor usikkerheit i
+        langtidsvarselet. Her visast berre medianverdiar, altså den midterste
+        verdien blant alle prognosane.
       </p>
     </div>
   </footer>
@@ -707,18 +751,18 @@
 
   @keyframes moveRightLeft {
     0% {
-      transform: translateX(200px);
-    }
-    50% {
       transform: translateX(0);
     }
-    100% {
+    50% {
       transform: translateX(200px);
+    }
+    100% {
+      transform: translateX(0);
     }
   }
 
   .animate-moveRightLeft {
-    animation: moveRightLeft 40s ease-in-out infinite;
+    animation: moveRightLeft 50s ease-in-out infinite;
   }
 
   .clip-container {
