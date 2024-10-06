@@ -1,0 +1,21 @@
+{
+  "name": "Helge­vêret",
+  "short_name": "Helge­vêret",
+  "description": "Samanlikn vêrmeldinga for dine favorittstadar og planlegg neste tur",
+  "start_url": "/",
+  "display": "standalone", 
+  "background_color": "#1a548e",
+  "theme_color": "#1a548e",
+  "icons": [
+    {
+      "src": "/app-icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/app-icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
