@@ -34,8 +34,7 @@
       requestAnimationFrame(() => {
         // Ensure the DOM is fully rendered before checking
         const scrollWidth = container.scrollWidth;
-        const clientWidth = container.getBoundingClientRect().width; // More accurate way to get container's visible width
-
+        const clientWidth = container.getBoundingClientRect().width; 
         hasOverflow = scrollWidth > clientWidth;
       });
     }
@@ -48,7 +47,7 @@
   const handleAddPlace = (event) => {
     const newPlace = event.detail.position;
 
-    // Check if the location is already in the list by comparing its name, lat, and lon
+    // Check if the location is already in the list
     const isDuplicate = locations.some(
       (location) =>
         location.name === newPlace.name ||
@@ -325,7 +324,7 @@
     const pixelsBelowRain = 6;
     const rainShareOfHeight = 0.7;
 
-    // Flatten the nested structure to extract the max temperatures, safely checking if the data exists
+    // Flatten the nested structure to extract the max temperatures
     const allMaxTemperatures = weatherDataFiltered.flatMap((location) => {
       // Check if subseasonal and timeseries exist
       if (location.subseasonal && location.subseasonal.properties.timeseries) {
@@ -344,7 +343,6 @@
       if (location.subseasonal && location.subseasonal.properties.timeseries) {
         return location.subseasonal.properties.timeseries
           .map((day) => {
-            // Check if the next_24_hours and its details exist
             return day.data?.next_24_hours?.details?.air_temperature_min;
           })
           .filter((temp) => temp !== undefined);
@@ -417,16 +415,12 @@
     updateScale();
   }
 
-  let showStickyAxis = false;
-  let scrollContainer; // Scroll container reference
-  let xAxis; // Reference to the original x-axis
-
   console.log(`              
        ___      
       (o o)     
   ooO--(_)--Ooo-
 
-  Hei, Aftenposten!
+  Heisann!
 
 `);
 

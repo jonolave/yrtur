@@ -11,7 +11,6 @@
   const colorRain = "#0077CC";
   const colorRainAlpha = "#0077CCBD";
 
-  // Determine the temperature range reactively
   $: tempRange =
     maxTemp > 0
       ? minTemp > 0

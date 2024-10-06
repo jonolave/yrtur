@@ -8,7 +8,6 @@
 
   let validPlace = false;
 
-  // Funksjon som håndterer innsending av søket
   const handleSearch = () => {
     if (place.trim() !== '') {
       submittedPlace = place;
@@ -18,10 +17,9 @@
     }
   };
 
-  // Funksjon som håndterer 'Enter'-tasten
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
-      handleSearch(); // Trigger søket når brukeren trykker Enter
+      handleSearch();
     }
   };
 
@@ -34,7 +32,7 @@
           position = data[0];
           validPlace = true;
         } else {
-          position = { display_name: 'Ingen treff, dessverre.' }; // Provide a fallback
+          position = { display_name: 'Ingen treff, dessverre.' };
           validPlace = false;
         }
       })
@@ -45,7 +43,7 @@
       });
   }
 
-  // Funksjon som sender sted til hovedkomponenten
+  // Send sted til hovedkomponenten
   const addPlace = () => {
     if (place.trim() !== '') {
       dispatch('addPlace', { position });
@@ -75,7 +73,6 @@
           class="border p-2 rounded-full flex-1 pr-10 pl-4"
         />
         {#if place}
-          <!-- Clear 'x' button (inside the input field) -->
           <button
             on:click={() => ((place = ''), (submittedPlace = ''))}
             class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
