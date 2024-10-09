@@ -442,10 +442,13 @@
 
     if (typeof window !== 'undefined') {
       window.addEventListener('resize', checkOverflow);
-      return () => {
-        window.removeEventListener('resize', checkOverflow);
-      };
     }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', checkOverflow);
+      }
+    };
   });
 </script>
 
@@ -460,7 +463,7 @@
 
   <!-- Top -->
   <section class="w-full flex-col justify-start items-center">
-    <div class="w-full max-w-[880px] mx-auto px-5 pb-4 mb-3 mt-[180px]">
+    <div class="w-full max-w-[950px] mx-auto px-5 pb-4 mb-3 mt-[180px]">
       <!-- Heading info -->
       <h1 class="text-4xl text-white mb-1 merriweather-font">
         Helge&shy;vêret
@@ -503,7 +506,7 @@
   </section>
 
   <!-- Locations with weather -->
-  <section class="max-w-[880px] mx-auto" style="overflow-x: auto; ">
+  <section class="max-w-[950px] mx-auto" style="overflow-x: auto; ">
     <div
       class="pl-4 py-4 ml-5 {hasOverflow ? 'rounded-l-xl' : 'rounded-xl'}"
       style="background-color: rgba(255, 255, 255, 0.9);"
@@ -698,7 +701,7 @@
   </section>
 
   <footer class="w-full flex-col justify-start items-center">
-    <div class="w-full max-w-[880px] mx-auto px-5 pb-12 pt-8 mb-3">
+    <div class="w-full max-w-[950px] mx-auto px-5 pb-12 pt-8 mb-3">
       <p class="text-blue-100">
         21-dagarsvarselet er henta frå <a
           class="text-blue-100 underline"
