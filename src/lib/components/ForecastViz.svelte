@@ -47,6 +47,7 @@
     {#if series.data.next_24_hours}
       <!-- Draw weekend data -->
       {#if series.dayNumber === 6 || series.dayNumber === 0}
+        <!-- Temperature -->
         <TempRange {series} {settings} {tempScale} daytype="weekend" />
 
         <!-- Rain rectangle -->
@@ -91,6 +92,17 @@
           >
             {series.data.next_24_hours.details.precipitation_amount}
           </text>
+        {/if}
+
+        <!-- Line separating weekends -->
+        {#if series.dayNumber === 0}
+          <line
+            x1={series.xPixelStart + settings.weekEndDayWidth + settings.svgLeftPadding}
+            y1="0"
+            x2={series.xPixelStart + settings.weekEndDayWidth + settings.svgLeftPadding}
+            y2={settings.dayHeight}
+            stroke="#33415544"
+          />
         {/if}
 
         <!-- Draw weekday data -->

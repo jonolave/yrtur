@@ -14,7 +14,12 @@
     weekDayWidth: 16,
     weekEndDayWidth: 60,
     dayHeight: 120,
-    svgLeftPadding: 51,
+    svgLeftPadding: 51, 
+    pixelsAboveTemp: 24,
+    tempShareOfHeight: 0.8,
+    pixelsBelowRain: 6,
+    rainShareOfHeight: 0.7,
+    sameTempScale: false,
   };
 
   let locations = defaultLocations();
@@ -34,7 +39,7 @@
       requestAnimationFrame(() => {
         // Ensure the DOM is fully rendered before checking
         const scrollWidth = container.scrollWidth;
-        const clientWidth = container.getBoundingClientRect().width; 
+        const clientWidth = container.getBoundingClientRect().width;
         hasOverflow = scrollWidth > clientWidth;
       });
     }
@@ -186,83 +191,76 @@
     let xPixelStart = 0;
     let currentWidth = 0;
 
-    if (weekendsOnly) {
-      weatherDataFiltered = weatherData.map((location) => {
-        weekDays = 0;
-        weekendDays = 0;
-        xPixelStart = 0;
-        currentWidth = 0;
+    weatherDataFiltered = weatherData.map((location) => {
+      weekDays = 0;
+      weekendDays = 0;
+      xPixelStart = 0;
+      currentWidth = 0;
+      let maxTemp = -Infinity;
+      let minTemp = Infinity;
 
-        const filteredTimeseries = location.subseasonal.properties.timeseries
-          .filter((day) => {
+      const filteredTimeseries = location.subseasonal.properties.timeseries
+        // Filter if weekends only
+        .filter((day) => {
+          if (weekendsOnly) {
             const date = new Date(day.time);
             return date.getDay() === 6 || date.getDay() === 0;
-          })
-          .map((day) => {
-            const date = new Date(day.time);
-            if (date.getDay() === 0 || date.getDay() === 6) {
-              weekendDays += 1;
-              currentWidth = settings.weekEndDayWidth;
-              xPixelStart += currentWidth;
-            } else {
-              weekDays += 1;
-              currentWidth = settings.weekDayWidth;
-              xPixelStart += currentWidth;
-            }
-            return {
-              ...day,
-              dayNumber: date.getDay(),
-              xPixelStart: xPixelStart - currentWidth,
-            };
-          });
-        return {
-          ...location,
-          subseasonal: {
-            ...location.subseasonal,
-            properties: {
-              ...location.subseasonal.properties,
-              timeseries: filteredTimeseries,
-            },
-          },
-        };
-      });
-    } else {
-      weatherDataFiltered = weatherData.map((location) => {
-        weekDays = 0;
-        weekendDays = 0;
-        xPixelStart = 0;
-        currentWidth = 0;
+          } else {
+            return true;
+          }
+        })
+        // calculations per day
+        .map((day) => {
+          const date = new Date(day.time);
 
-        const timeseriesWithDayNumber =
-          location.subseasonal.properties.timeseries.map((day) => {
-            const date = new Date(day.time);
-            if (date.getDay() === 0 || date.getDay() === 6) {
-              weekendDays += 1;
-              currentWidth = settings.weekEndDayWidth;
-              xPixelStart += currentWidth;
-            } else {
-              weekDays += 1;
-              currentWidth = settings.weekDayWidth;
-              xPixelStart += currentWidth;
-            }
-            return {
-              ...day,
-              dayNumber: date.getDay(),
-              xPixelStart: xPixelStart - currentWidth,
-            };
-          });
-        return {
-          ...location,
-          subseasonal: {
-            ...location.subseasonal,
-            properties: {
-              ...location.subseasonal.properties,
-              timeseries: timeseriesWithDayNumber,
-            },
+          // Update min and max temperatures
+          if (
+            day.data.next_24_hours.details.air_temperature_max !== undefined &&
+            day.data.next_24_hours.details.air_temperature_min !== undefined
+          ) {
+            if (day.data.next_24_hours.details.air_temperature_max > maxTemp)
+              maxTemp = day.data.next_24_hours.details.air_temperature_max;
+            if (day.data.next_24_hours.details.air_temperature_min < minTemp)
+              minTemp = day.data.next_24_hours.details.air_temperature_min;
+          }
+
+          if (date.getDay() === 0 || date.getDay() === 6) {
+            weekendDays += 1;
+            currentWidth = settings.weekEndDayWidth;
+            xPixelStart += currentWidth;
+          } else {
+            weekDays += 1;
+            currentWidth = settings.weekDayWidth;
+            xPixelStart += currentWidth;
+          }
+          return {
+            ...day,
+            dayNumber: date.getDay(),
+            xPixelStart: xPixelStart - currentWidth,
+          };
+        });
+
+      // Linear scale for location based on the min and max temp
+      const tempScale = scaleLinear()
+        .domain([minTemp, maxTemp])
+        .range([settings.dayHeight * settings.tempShareOfHeight, settings.pixelsAboveTemp]);
+
+      return {
+        ...location,
+        subseasonal: {
+          ...location.subseasonal,
+          properties: {
+            ...location.subseasonal.properties,
+            timeseries: filteredTimeseries,
+            minTemp,
+            maxTemp,
+            tempScale,
           },
-        };
-      });
-    }
+        },
+      };
+    });
+
+    // console.log('Filtered weather data:', weatherDataFiltered);
 
     if (weatherDataFiltered[0]?.subseasonal) {
       svgTotalWidth =
@@ -315,14 +313,10 @@
     }
   }
 
-  let tempScale;
+  let tempScaleGlobal; // currently not in use
   let rainScale;
 
   function updateScale() {
-    const pixelsAboveTemp = 24;
-    const tempShareOfHeight = 0.8;
-    const pixelsBelowRain = 6;
-    const rainShareOfHeight = 0.7;
 
     // Flatten the nested structure to extract the max temperatures
     const allMaxTemperatures = weatherDataFiltered.flatMap((location) => {
@@ -360,9 +354,9 @@
       minTemp = minValue;
 
       // Create a linear scale based on the min and max values
-      tempScale = scaleLinear()
+      tempScaleGlobal = scaleLinear()
         .domain([minValue, maxValue])
-        .range([settings.dayHeight * tempShareOfHeight, pixelsAboveTemp]);
+        .range([settings.dayHeight * settings.tempShareOfHeight, settings.pixelsAboveTemp]);
     } else {
       // console.error("No valid temperature data found");
     }
@@ -391,15 +385,15 @@
         rainScale = scaleLinear()
           .domain([0, maxValue])
           .range([
-            settings.dayHeight - pixelsBelowRain,
-            settings.dayHeight - settings.dayHeight * rainShareOfHeight,
+            settings.dayHeight - settings.pixelsBelowRain,
+            settings.dayHeight - settings.dayHeight * settings.rainShareOfHeight,
           ]);
       } else {
         rainScale = scaleLinear()
           .domain([0, 20])
           .range([
-            settings.dayHeight - pixelsBelowRain,
-            settings.dayHeight - settings.dayHeight * rainShareOfHeight,
+            settings.dayHeight - settings.pixelsBelowRain,
+            settings.dayHeight - settings.dayHeight * settings.rainShareOfHeight,
           ]);
       }
     } else {
@@ -585,20 +579,20 @@
                         class="w-[20px] bg-white h-full shadow-[0_0_5px_2px_rgba(255,255,255,1.0)]"
                       >
                         <svg width="25" height={settings.dayHeight}>
-                          {#if minTemp < 0 && maxTemp > 0}
+                          {#if data.subseasonal.properties.minTemp < 0 && data.subseasonal.properties.maxTemp > 0}
                             <!-- 0 degrees -->
                             <line
                               x1="18"
-                              y1={tempScale(0)}
+                              y1={ data.subseasonal.properties.tempScale(0) }
                               x2="25"
-                              y2={tempScale(0)}
+                              y2={ data.subseasonal.properties.tempScale(0) }
                               stroke="#222"
                             />
-                            {#if tempScale(minTemp) - tempScale(0) > 8 && tempScale(0) - tempScale(maxTemp) > 8}
+                            {#if data.subseasonal.properties.tempScale(data.subseasonal.properties.minTemp) - data.subseasonal.properties.tempScale(0) > 8 && data.subseasonal.properties.tempScale(0) - data.subseasonal.properties.tempScale(data.subseasonal.properties.maxTemp) > 8}
                               <text
                                 x="18"
                                 fill="#222"
-                                Y={tempScale(0) + 3}
+                                Y={data.subseasonal.properties.tempScale(0) + 3}
                                 font-size="12px"
                                 text-anchor="end"
                                 font-weight="normal"
@@ -610,38 +604,38 @@
                           <!-- Max tem -->
                           <line
                             x1="18"
-                            y1={tempScale(maxTemp)}
+                            y1={data.subseasonal.properties.tempScale(data.subseasonal.properties.maxTemp)}
                             x2="25"
-                            y2={tempScale(maxTemp)}
+                            y2={data.subseasonal.properties.tempScale(data.subseasonal.properties.maxTemp)}
                             stroke="#222"
                           />
                           <text
                             x="18"
                             fill="#222"
-                            Y={tempScale(maxTemp) + 3}
+                            Y={data.subseasonal.properties.tempScale(data.subseasonal.properties.maxTemp) + 3}
                             font-size="12px"
                             text-anchor="end"
                             font-weight="normal"
                           >
-                            {Math.round(maxTemp)}°
+                            {Math.round(data.subseasonal.properties.maxTemp)}°
                           </text>
                           <!-- Min tem -->
                           <line
                             x1="18"
-                            y1={tempScale(minTemp)}
+                            y1={data.subseasonal.properties.tempScale(data.subseasonal.properties.minTemp)}
                             x2="25"
-                            y2={tempScale(minTemp)}
+                            y2={data.subseasonal.properties.tempScale(data.subseasonal.properties.minTemp)}
                             stroke="#222"
                           />
                           <text
                             x="18"
                             fill="#222"
-                            Y={tempScale(minTemp) + 3}
+                            Y={data.subseasonal.properties.tempScale(data.subseasonal.properties.minTemp) + 3}
                             font-size="12px"
                             text-anchor="end"
                             font-weight="normal"
                           >
-                            {Math.round(minTemp)}°
+                            {Math.round(data.subseasonal.properties.minTemp)}°
                           </text>
                         </svg>
                       </div>
@@ -657,9 +651,9 @@
                     <ForecastViz
                       {svgTotalWidth}
                       {settings}
-                      {minTemp}
-                      {maxTemp}
-                      {tempScale}
+                      minTemp = {data.subseasonal.properties.minTemp}
+                      maxTemp = {data.subseasonal.properties.maxTemp}
+                      tempScale={data.subseasonal.properties.tempScale}
                       {rainScale}
                       {data}
                     />
@@ -668,7 +662,7 @@
                         on:click={() => {
                           locations.splice(index, 1); // Remove one element at the index
                           fetchWeatherForAllLocations();
-                          filterWeatherData(); 
+                          filterWeatherData();
                           saveToLocalStorage();
                         }}
                         class="h-7 w-7 bg-white hover:bg-[#115183] text-blue-700 font-semibold hover:text-white border border-[#115183] hover:border-transparent rounded-full shrink-0 flex items-center justify-center"
